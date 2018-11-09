@@ -6,6 +6,7 @@ import PlacementObjects.Rectangle;
 import PlacementObjects.Surface;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 public class FreeSpace extends PositionedCuboid {
     ArrayList<Surface> supportingSurfaces = new ArrayList<Surface>();
@@ -66,19 +67,23 @@ public class FreeSpace extends PositionedCuboid {
         return result;
     }
 
-    private void updateSurfaces(Box box)
-    {
+    private void updateSurfaces(Box box) throws Exception {
         ArrayList<Surface> sameLevelSurfaces = getSurfaces(box.getPosition().getZ());
         for(Surface sf: sameLevelSurfaces)
         {
+            ArrayList<PositionedRectangle> rectanglesToUpdate = new ArrayList<>();
+            ArrayList<PositionedRectangle> rectangesToAdd = new ArrayList<>();
             for(PositionedRectangle rt: sf.getMaximalRectangles())
             {
-                if(rt.getHorizontalIntersection(box.getBottom()) != null)
+                PositionedRectangle intersection = rt.getHorizontalIntersection(box.getBottom());
+                if(intersection != null)
                 {
-                    //TODO: create a reduce method in PositionedRectangle
-                    rt.reduce();
+                    rectangesToAdd.addAll(rt.reduce(intersection));
+                    rectanglesToUpdate.add(rt);
                 }
             }
+            sf.getMaximalRectangles().removeAll(new HashSet<PositionedRectangle>(rectanglesToUpdate));
+            sf.getMaximalRectangles().addAll(rectangesToAdd);
         }
     }
 
