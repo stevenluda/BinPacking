@@ -18,7 +18,8 @@ public class PalletState extends State {
     public void updateState(Box box){
         packedBoxes.add(box);
         totalWeight += box.getWeight();
-        //TODO: segment the space
+        //TODO: update free spaces
+
     }
 
     public int getTotalWeight() {
@@ -26,6 +27,8 @@ public class PalletState extends State {
     }
 
     public void updateFreeSpaces(Box box){
+        //TODO: segment each free spaces if necessary
 
+        //TODO: add supporting surface for each space if necessary
     }
 }

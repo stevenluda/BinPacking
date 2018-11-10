@@ -13,6 +13,20 @@ public class Point {
         this.z = z;
     }
 
+    public Point(Point base)
+    {
+        this.x = base.getX();
+        this.y = base.getY();
+        this.z = base.getZ();
+    }
+
+    public Point(Point base, int x_diff, int y_diff, int z_diff)
+    {
+        this(base);
+        this.x += x_diff;
+        this.y += y_diff;
+        this.z += z_diff;
+    }
     public int getX() {
         return x;
     }

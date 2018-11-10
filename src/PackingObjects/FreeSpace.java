@@ -30,28 +30,60 @@ public class FreeSpace extends PositionedCuboid {
         //find the non-touching surfaces of the physical box. Note that the bottom is not always touching because the
         //supporting surface may not be provided by the this free space
         ArrayList<FreeSpace> newFreeSpaces = new ArrayList<>();
-        if(box.getPosition().getZ()>position.getZ())
+        if(box.getZBottom() > position.getZ())
         {
             //the bottom of physical box is a separating plane
-            FreeSpace fs = new FreeSpace(width, depth, box.getPosition().getZ() - position.getZ(), position, this.pallet, supportingSurfaces);
+            FreeSpace fs = new FreeSpace(width, depth, box.getZBottom() - position.getZ(), position, this.pallet, supportingSurfaces);
             newFreeSpaces.add(fs);
         }
-        else
+        else if(box.getZBottom() == position.getZ())
         {
             //TODO: check if any supporting surfaces of this free space overlaps with the bottom of the box and reduce them if necessary
+            for(Surface sf: supportingSurfaces)
+            {
 
+            }
         }
 
-        if(box.getPosition().getZ() + box.getHeight() < position.getZ() + height)
+        if(box.getZTop() < position.getZ() + height)
         {
             // the top of the physical box is a separating plane
             // determine the intersecting area
             PositionedRectangle intersectingArea = box.getTop().getHorizontalIntersection(this.getBottom());
             Surface sf = new Surface(intersectingArea);
-            FreeSpace fs = new FreeSpace(width, depth,box.getPosition().getZ() - position.getZ(),
-                    new Point(box.getPosition().getX(), box.getPosition().getY(),box.getPosition().getZ() + box.getHeight()), this.pallet, sf);
+            FreeSpace fs = new FreeSpace(width, depth,position.getZ() + height - box.getZTop(),
+                    new Point(position.getX(), position.getY(),box.getZTop()), this.pallet, sf);
         }
 
+        if(box.getXLeft() > position.getX())
+        {
+            //the left side of physical box is a separating plane
+            FreeSpace fs = new FreeSpace(box.getXLeft()-position.getX(), depth, height, position, this.pallet, supportingSurfaces);
+            newFreeSpaces.add(fs);
+        }
+
+        if(box.getXRight() < position.getZ() + width)
+        {
+            // the right of the physical box is a separating plane
+            FreeSpace fs = new FreeSpace(position.getZ() + width - box.getXRight(), depth,
+                    height, new Point(box.getXRight(), position.getY(), position.getZ()), this.pallet, supportingSurfaces);
+            newFreeSpaces.add(fs);
+        }
+
+        if(box.getYFront() > position.getY())
+        {
+            // the front of the physical box is a separating plane
+            FreeSpace fs = new FreeSpace(width, box.getYFront() - position.getY(), height, position, this.pallet, supportingSurfaces);
+            newFreeSpaces.add(fs);
+        }
+
+        if(box.getYBack() < position.getY() + depth)
+        {
+            // the back of the physical box is a separating plane
+            FreeSpace fs = new FreeSpace(width, position.getY() + depth - box.getYBack(),
+                    height, new Point(position.getX(), box.getYBack(), position.getZ()), this.pallet, supportingSurfaces);
+            newFreeSpaces.add(fs);
+        }
         //TODO: what if box top is touching bottom of some other box
     }
 
@@ -68,23 +100,25 @@ public class FreeSpace extends PositionedCuboid {
     }
 
     private void updateSurfaces(Box box) throws Exception {
-        ArrayList<Surface> sameLevelSurfaces = getSurfaces(box.getPosition().getZ());
-        for(Surface sf: sameLevelSurfaces)
+        for(Surface sf: supportingSurfaces)
         {
             ArrayList<PositionedRectangle> rectanglesToUpdate = new ArrayList<>();
-            ArrayList<PositionedRectangle> rectangesToAdd = new ArrayList<>();
+            ArrayList<PositionedRectangle> rectanglesToAdd = new ArrayList<>();
             for(PositionedRectangle rt: sf.getMaximalRectangles())
             {
                 PositionedRectangle intersection = rt.getHorizontalIntersection(box.getBottom());
                 if(intersection != null)
                 {
-                    rectangesToAdd.addAll(rt.reduce(intersection));
+                    rectanglesToAdd.addAll(rt.reduce(intersection));
                     rectanglesToUpdate.add(rt);
                 }
             }
             sf.getMaximalRectangles().removeAll(new HashSet<PositionedRectangle>(rectanglesToUpdate));
-            sf.getMaximalRectangles().addAll(rectangesToAdd);
+            sf.getMaximalRectangles().addAll(rectanglesToAdd);
         }
     }
+    //TODO: if the supporting surface is fully covered underneath physical boxes, it should be removed.
+    //TODO: or marked as fully covered. So that when other freespaces will get a flag and remove it.
+    //TODO: or use event listener for fully covered event.
 
 }
