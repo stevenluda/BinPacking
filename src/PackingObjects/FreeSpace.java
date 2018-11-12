@@ -2,13 +2,13 @@ package PackingObjects;
 
 import PlacementObjects.Point;
 import PlacementObjects.PositionedRectangle;
-import PlacementObjects.Rectangle;
 import PlacementObjects.Surface;
+import utils.SurfaceEventListener;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 
-public class FreeSpace extends PositionedCuboid {
+public class FreeSpace extends PositionedCuboid implements SurfaceEventListener {
     ArrayList<Surface> supportingSurfaces = new ArrayList<Surface>();
     Pallet pallet;
     public FreeSpace(int width, int depth, int height, Point position, Pallet pallet, ArrayList<Surface> supportingSurfaces) {
@@ -23,7 +23,7 @@ public class FreeSpace extends PositionedCuboid {
         supportingSurfaces.add(supportingSurface);
     }
 
-    public void segmentSpace(Box box){
+    public ArrayList<FreeSpace> segmentSpace(Box box) throws Exception {
         //The segmentation of the free space is based on the surfaces of the physical box not touching a virtual wall of
         //the free space.
 
@@ -38,11 +38,8 @@ public class FreeSpace extends PositionedCuboid {
         }
         else if(box.getZBottom() == position.getZ())
         {
-            //TODO: check if any supporting surfaces of this free space overlaps with the bottom of the box and reduce them if necessary
-            for(Surface sf: supportingSurfaces)
-            {
-
-            }
+            // check if any supporting surface of this free space overlaps with the bottom of the box and reduce them if necessary
+            updateSurfaces(box);
         }
 
         if(box.getZTop() < position.getZ() + height)
@@ -85,6 +82,8 @@ public class FreeSpace extends PositionedCuboid {
             newFreeSpaces.add(fs);
         }
         //TODO: what if box top is touching bottom of some other box
+
+        return newFreeSpaces;
     }
 
     private ArrayList<Surface> getSurfaces(int y){
@@ -102,23 +101,33 @@ public class FreeSpace extends PositionedCuboid {
     private void updateSurfaces(Box box) throws Exception {
         for(Surface sf: supportingSurfaces)
         {
-            ArrayList<PositionedRectangle> rectanglesToUpdate = new ArrayList<>();
+            ArrayList<PositionedRectangle> rectanglesToRemove = new ArrayList<>();
             ArrayList<PositionedRectangle> rectanglesToAdd = new ArrayList<>();
             for(PositionedRectangle rt: sf.getMaximalRectangles())
             {
                 PositionedRectangle intersection = rt.getHorizontalIntersection(box.getBottom());
                 if(intersection != null)
                 {
-                    rectanglesToAdd.addAll(rt.reduce(intersection));
-                    rectanglesToUpdate.add(rt);
+                    rectanglesToAdd.addAll(rt.reduce(intersection));//Note: if rt.reduce returns an empty arraylist, it means intersection fully covers the supporting surface
+                    rectanglesToRemove.add(rt);
                 }
             }
-            sf.getMaximalRectangles().removeAll(new HashSet<PositionedRectangle>(rectanglesToUpdate));
+            sf.getMaximalRectangles().removeAll(new HashSet<PositionedRectangle>(rectanglesToRemove));
             sf.getMaximalRectangles().addAll(rectanglesToAdd);
+            if(sf.getMaximalRectangles().isEmpty())
+            {
+                sf.setAllCovered();
+            }
         }
     }
-    //TODO: if the supporting surface is fully covered underneath physical boxes, it should be removed.
-    //TODO: or marked as fully covered. So that when other freespaces will get a flag and remove it.
-    //TODO: or use event listener for fully covered event.
 
+    public void addSurface(Surface sf)
+    {
+        supportingSurfaces.add(sf);
+    }
+
+    @Override
+    public void OnSurfaceCovered(Surface eventSource) {
+        supportingSurfaces.remove(eventSource);
+    }
 }

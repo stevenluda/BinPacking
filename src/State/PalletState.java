@@ -2,6 +2,7 @@ package State;
 
 import PackingObjects.Box;
 import PackingObjects.FreeSpace;
+import PlacementObjects.PositionedRectangle;
 import PlacementObjects.Surface;
 
 import java.util.ArrayList;
@@ -26,9 +27,40 @@ public class PalletState extends State {
         return totalWeight;
     }
 
-    public void updateFreeSpaces(Box box){
-        //TODO: segment each free spaces if necessary
+    public void updateFreeSpaces(Box box) throws Exception {
+        //segment each free spaces if necessary
+        ArrayList<FreeSpace> freeSpacesToAdd = new ArrayList<>();
+        ArrayList<FreeSpace> freeSpacesToRemove = new ArrayList<>();
+        for(FreeSpace fs: freespaces)
+        {
+            ArrayList<FreeSpace> result = fs.segmentSpace(box);
+            if(!result.isEmpty())
+            {
+                freeSpacesToRemove.add(fs);
+            }
+            else
+            {
+                freeSpacesToAdd.addAll(result);
+            }
+        }
 
-        //TODO: add supporting surface for each space if necessary
+        freespaces.removeAll(freeSpacesToRemove);
+        freespaces.addAll(freeSpacesToAdd);
+        //add supporting surface for each space if necessary
+        //don't forget to register the freespace as listener of surface covered event
+        for(FreeSpace fs: freespaces)
+        {
+            if(fs.getZBottom() == box.getZTop())
+            {
+                PositionedRectangle pr = fs.getBottom().getHorizontalIntersection(box.getTop());
+                if(pr != null)
+                {
+                    Surface sf = new Surface(pr);
+                    sf.addSurfaceEventListener(fs);
+                    fs.addSurface(sf);
+                }
+            }
+        }
+
     }
 }
