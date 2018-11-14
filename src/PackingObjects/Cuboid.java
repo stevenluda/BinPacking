@@ -1,5 +1,7 @@
 package PackingObjects;
 
+import PlacementObjects.Point;
+
 public class Cuboid {
     protected int width, depth, height;
     public Cuboid(int width, int depth, int height){
@@ -18,5 +20,32 @@ public class Cuboid {
 
     public int getHeight() {
         return height;
+    }
+
+    public int getVolume() {
+        return width*depth*height;
+    }
+
+    public Point rotate(int degree_along_x, int degree_along_y, int degree_along_z) {
+        int w = width;
+        int d = depth;
+        int h = height;
+        if(degree_along_x == 90){
+            int temp = h;
+            h = d;
+            d = temp;
+        }
+        if(degree_along_y == 90){
+            int temp = w;
+            w = h;
+            h = temp;
+        }
+        if(degree_along_z == 90){
+            int temp = w;
+            w = d;
+            d = temp;
+        }
+        return new Point(w, d, h);
+
     }
 }

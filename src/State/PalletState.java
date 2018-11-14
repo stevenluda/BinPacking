@@ -2,6 +2,8 @@ package State;
 
 import PackingObjects.Box;
 import PackingObjects.FreeSpace;
+import PackingObjects.Pallet;
+import PlacementObjects.Point;
 import PlacementObjects.PositionedRectangle;
 import PlacementObjects.Surface;
 
@@ -10,10 +12,10 @@ import java.util.ArrayList;
 public class PalletState extends State {
     ArrayList<Box> packedBoxes = new ArrayList<Box>();
     int totalWeight = 0;
-    ArrayList<Surface> surfaces = new ArrayList<Surface>();
     ArrayList<FreeSpace> freespaces = new ArrayList<FreeSpace>();
-    public PalletState(){
-
+    public PalletState(Pallet pallet){
+        freespaces.add(new FreeSpace(pallet.getWidth(), pallet.getDepth(), pallet.getHeight(), new Point(0,0,0),
+                pallet, new Surface(new PositionedRectangle(pallet.getWidth(), pallet.getDepth(),new Point(0,0,0)))));
     }
 
     public void updateState(Box box){
@@ -62,5 +64,14 @@ public class PalletState extends State {
             }
         }
 
+    }
+
+    public ArrayList<FreeSpace> getFeasibleFreeSpaces(Box box) {
+        ArrayList<FreeSpace> feasibleFreeSpaces = new ArrayList<>();
+        for(FreeSpace fs:freespaces){
+            if(fs.accomadate(box))
+               feasibleFreeSpaces.add(fs);
+        }
+        return feasibleFreeSpaces;
     }
 }

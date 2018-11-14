@@ -130,4 +130,24 @@ public class FreeSpace extends PositionedCuboid implements SurfaceEventListener 
     public void OnSurfaceCovered(Surface eventSource) {
         supportingSurfaces.remove(eventSource);
     }
+
+    public int getVolume() {
+        return width*depth*height;
+    }
+
+    public boolean accomadate(Box box) {
+        if(getVolume() < box.getVolume())
+            return false;
+        if(!(dimensionFits(box.rotate(0,0,0))||dimensionFits(box.rotate(0,0,90))||
+            dimensionFits(box.rotate(0,90,0))||dimensionFits(box.rotate(0,90,90))||
+            dimensionFits(box.rotate(90,0,0))||dimensionFits(box.rotate(90,0,90))))
+            return false;
+        return true;
+    }
+
+    public boolean dimensionFits(Point vector){
+        if(width >= vector.getX() && depth >= vector.getY() && height >= vector.getZ())
+            return true;
+        return false;
+    }
 }

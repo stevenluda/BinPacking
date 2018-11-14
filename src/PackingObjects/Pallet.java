@@ -12,6 +12,7 @@ public class Pallet extends Cuboid {
         super(width, depth, height);
         this.id = id;
         this.maxWeight = maxWeight;
+        state = new PalletState(this);
     }
 
     public void placeBox(Box box){
@@ -32,6 +33,10 @@ public class Pallet extends Cuboid {
 
     public boolean hasEnoughWeightCapacity(int additionalWeight){
         return state.getTotalWeight() + additionalWeight <= maxWeight?true:false;
+    }
+
+    public ArrayList<FreeSpace> getFeasibleFreeSpaces(Box box){
+        return state.getFeasibleFreeSpaces(box);
     }
 
 }
