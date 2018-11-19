@@ -18,11 +18,11 @@ public class PalletState extends State {
                 pallet, new Surface(new PositionedRectangle(pallet.getWidth(), pallet.getDepth(),new Point(0,0,0)))));
     }
 
-    public void updateState(Box box){
+    public void updateState(Box box) throws Exception {
         packedBoxes.add(box);
         totalWeight += box.getWeight();
-        //TODO: update free spaces
-
+        //update free spaces
+        updateFreeSpaces(box);
     }
 
     public int getTotalWeight() {
@@ -49,7 +49,6 @@ public class PalletState extends State {
         freespaces.removeAll(freeSpacesToRemove);
         freespaces.addAll(freeSpacesToAdd);
         //add supporting surface for each space if necessary
-        //don't forget to register the freespace as listener of surface covered event
         for(FreeSpace fs: freespaces)
         {
             if(fs.getZBottom() == box.getZTop())
@@ -58,7 +57,6 @@ public class PalletState extends State {
                 if(pr != null)
                 {
                     Surface sf = new Surface(pr);
-                    sf.addSurfaceEventListener(fs);
                     fs.addSurface(sf);
                 }
             }

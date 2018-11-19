@@ -1,60 +1,39 @@
 package PlacementObjects;
 
-import utils.SurfaceEventListener;
-
 import java.util.ArrayList;
 
-public class Surface{
-    ArrayList<PositionedRectangle> maximalRectangles = new ArrayList<PositionedRectangle>(); // the set of possible maximal rectangles.
+public class Surface extends PositionedRectangle{
     int z = 0;
-    boolean isAllCovered;
-    ArrayList<SurfaceEventListener> listeners = new ArrayList<>();
-    public Surface(ArrayList<PositionedRectangle> maximalRectangles) {
-        this.maximalRectangles.addAll(maximalRectangles);
-        z = maximalRectangles.get(0).getPosition().getZ();
-        isAllCovered = false;
-    }
+    boolean isCovered;
 
-    public Surface(PositionedRectangle maximalRectangle) {
-        this.maximalRectangles.add(maximalRectangle);
-    }
-
-    public ArrayList<PositionedRectangle> getMaximalRectangles() {
-        return maximalRectangles;
+    public Surface(PositionedRectangle rt) {
+        super(rt);
+        z = position.getZ();
+        isCovered = false;
     }
 
     public int getZ() {
         return z;
     }
 
-    public boolean isAllCovered()
+    public boolean isCovered()
     {
-        return isAllCovered;
+        return isCovered;
     }
 
-    public void setAllCovered()
+    public void setCovered()
     {
-        isAllCovered = true;
+        isCovered = true;
     }
 
-    public void addSurfaceEventListener(SurfaceEventListener l)
-    {
-        listeners.add(l);
-    }
-
-    public void removeSurfaceEventListener(SurfaceEventListener l)
-    {
-        listeners.remove(l);
-    }
-
-    protected void fireSurfaceCovered()
-    {
-        if(!listeners.isEmpty())
-        {
-            for(SurfaceEventListener l:listeners)
-            {
-                l.OnSurfaceCovered(this);
+    public ArrayList<Surface> getReducedSurfaces(PositionedRectangle rt) throws Exception {
+        ArrayList<PositionedRectangle> result_rts = reduce(rt);
+        ArrayList<Surface> result = new ArrayList<>();
+        if(result_rts.isEmpty()){
+            for(PositionedRectangle r: result_rts){
+                result.add(new Surface(r));
             }
         }
+        return result;
     }
 }

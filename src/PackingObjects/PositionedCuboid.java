@@ -97,4 +97,8 @@ public class PositionedCuboid extends Cuboid {
     {
         return new PositionedRectangle(width, depth, new Point(position.getX(), position.getY(), position.getZ()+height));
     }
+
+    public void setPosition(Point pos){
+        position = pos;
+    }
 }

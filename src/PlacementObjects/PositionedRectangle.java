@@ -1,6 +1,5 @@
 package PlacementObjects;
 
-import javax.swing.text.Position;
 import java.util.ArrayList;
 
 public class PositionedRectangle extends Rectangle {
@@ -11,10 +10,17 @@ public class PositionedRectangle extends Rectangle {
         this.position = position;
     }
 
+    public PositionedRectangle(PositionedRectangle rt){
+        this(rt.width, rt.depth, rt.position);
+    }
+
     public Point getPosition() {
         return position;
     }
-
+    public int getXLeft(){return position.getX();}
+    public int getXRight(){return position.getX() + width;}
+    public int getYFront(){return position.getY();}
+    public int getYBack(){return position.getY() + depth;}
     public PositionedRectangle getHorizontalIntersection(PositionedRectangle pr)
     {
         int x, y, w, d;
@@ -109,5 +115,9 @@ public class PositionedRectangle extends Rectangle {
                     this.position));
         }
         return result;
+    }
+
+    public int getArea(){
+        return width*depth;
     }
 }
