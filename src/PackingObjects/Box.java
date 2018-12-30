@@ -1,7 +1,7 @@
 package PackingObjects;
 
 
-import PlacementObjects.Point;
+import PlacementObjects.Vector3D;
 
 import java.util.ArrayList;
 
@@ -11,7 +11,7 @@ public class Box extends PositionedCuboid {
     ArrayList<Box> aboveBoxes = new ArrayList<Box>();
     ArrayList<Box> underneathBoxes = new ArrayList<Box>();
 
-    public Box(String id, int width, int depth, int height, int weight, Point position) {
+    public Box(String id, int width, int depth, int height, int weight, Vector3D position) {
         super(width, depth, height, position);
         this.weight = weight;
         this.id = id;
@@ -25,8 +25,21 @@ public class Box extends PositionedCuboid {
         return weight;
     }
 
+    public void resetOrientation(Vector3D vec){
+        width = vec.getX();
+        depth = vec.getY();
+        height = vec.getZ();
+    }
 
-    public boolean isOverlapping(Point p, Box box){
+    public void placeTheBox(Vector3D pos, Vector3D orientation){
+        this.setPosition(pos);
+        this.resetOrientation(orientation);
+    }
+
+    public String toString(){
+        return this.id +","+this.width+","+this.depth+","+this.height+","+position.getX()+","+position.getY()+","+position.getZ();
+    }
+    /*public boolean isOverlapping(Vector3D p, Box box){
         if(p.getX() + this.getWidth() >= box.getPosition().getX()||
                 p.getX() <= box.getPosition().getX() + box.getWidth())
             return true;
@@ -37,7 +50,7 @@ public class Box extends PositionedCuboid {
                 p.getZ() + this.getHeight() <= box.getPosition().getZ())
             return true;
         return false;
-    }
+    }*/
 
 
 }

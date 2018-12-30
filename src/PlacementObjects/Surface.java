@@ -1,6 +1,7 @@
 package PlacementObjects;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Surface extends PositionedRectangle{
     int z = 0;
@@ -27,9 +28,9 @@ public class Surface extends PositionedRectangle{
     }
 
     public ArrayList<Surface> getReducedSurfaces(PositionedRectangle rt) throws Exception {
-        ArrayList<PositionedRectangle> result_rts = reduce(rt);
+        List<PositionedRectangle> result_rts = segmentSpace(rt);
         ArrayList<Surface> result = new ArrayList<>();
-        if(result_rts.isEmpty()){
+        if(!result_rts.isEmpty()){
             for(PositionedRectangle r: result_rts){
                 result.add(new Surface(r));
             }

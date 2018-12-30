@@ -1,21 +1,26 @@
 package State;
 
 import PackingObjects.Box;
-import PackingObjects.FreeSpace;
+import PackingObjects.FreeSpace3D;
 import PackingObjects.Pallet;
-import PlacementObjects.Point;
+import PlacementObjects.Vector3D;
 import PlacementObjects.PositionedRectangle;
 import PlacementObjects.Surface;
+import javafx.util.Pair;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class PalletState extends State {
     ArrayList<Box> packedBoxes = new ArrayList<Box>();
     int totalWeight = 0;
-    ArrayList<FreeSpace> freespaces = new ArrayList<FreeSpace>();
+    ArrayList<FreeSpace3D> freespaces = new ArrayList<FreeSpace3D>();
     public PalletState(Pallet pallet){
-        freespaces.add(new FreeSpace(pallet.getWidth(), pallet.getDepth(), pallet.getHeight(), new Point(0,0,0),
-                pallet, new Surface(new PositionedRectangle(pallet.getWidth(), pallet.getDepth(),new Point(0,0,0)))));
+        freespaces.add(new FreeSpace3D(pallet.getWidth(), pallet.getDepth(), pallet.getHeight(), new Vector3D(0,0,0),
+                pallet, new Surface(new PositionedRectangle(pallet.getWidth(), pallet.getDepth(),new Vector3D(0,0,0)))));
     }
 
     public void updateState(Box box) throws Exception {
@@ -29,27 +34,25 @@ public class PalletState extends State {
         return totalWeight;
     }
 
-    public void updateFreeSpaces(Box box) throws Exception {
+    public void updateFreeSpaces(Box box){
         //segment each free spaces if necessary
-        ArrayList<FreeSpace> freeSpacesToAdd = new ArrayList<>();
-        ArrayList<FreeSpace> freeSpacesToRemove = new ArrayList<>();
-        for(FreeSpace fs: freespaces)
+        ArrayList<FreeSpace3D> freeSpacesToAdd3D = new ArrayList<>();
+        ArrayList<FreeSpace3D> freeSpacesToRemove3D = new ArrayList<>();
+        for(FreeSpace3D fs: freespaces)
         {
-            ArrayList<FreeSpace> result = fs.segmentSpace(box);
-            if(!result.isEmpty())
-            {
-                freeSpacesToRemove.add(fs);
-            }
-            else
-            {
-                freeSpacesToAdd.addAll(result);
+            if(fs.isOverlapping(box)){
+                List<FreeSpace3D> result = fs.segmentSpace(box);
+                if(!result.isEmpty())
+                {
+                    freeSpacesToRemove3D.add(fs);
+                    freeSpacesToAdd3D.addAll(result);
+                }
             }
         }
 
-        freespaces.removeAll(freeSpacesToRemove);
-        freespaces.addAll(freeSpacesToAdd);
-        //add supporting surface for each space if necessary
-        for(FreeSpace fs: freespaces)
+        freespaces.removeAll(freeSpacesToRemove3D);
+        //update supporting surface for each remaining freespaces if necessary
+        for(FreeSpace3D fs: freespaces)
         {
             if(fs.getZBottom() == box.getZTop())
             {
@@ -61,15 +64,39 @@ public class PalletState extends State {
                 }
             }
         }
-
+        freespaces.addAll(freeSpacesToAdd3D);
     }
 
-    public ArrayList<FreeSpace> getFeasibleFreeSpaces(Box box) {
-        ArrayList<FreeSpace> feasibleFreeSpaces = new ArrayList<>();
-        for(FreeSpace fs:freespaces){
-            if(fs.accomadate(box))
-               feasibleFreeSpaces.add(fs);
+    public ArrayList<FreeSpace3D> getFeasibleFreeSpaces(Box box) {
+        ArrayList<FreeSpace3D> feasible3DFreeSpaces = new ArrayList<>();
+        for(FreeSpace3D fs:freespaces){
+            if(fs.accomodate(box))
+               feasible3DFreeSpaces.add(fs);
         }
-        return feasibleFreeSpaces;
+        return feasible3DFreeSpaces;
+    }
+
+    public void outputState(){
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter("packed_boxes.txt"));
+            for(Box box: packedBoxes){
+                writer.write(box.toString()+"\n");
+            }
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public ArrayList<Pair<Box, Box>> findOverlappingBoxes(){
+        ArrayList<Pair<Box, Box>> conflictBoxes = new ArrayList<>();
+        for(int i = 0; i < packedBoxes.size(); i++){
+            for(int j = i+1; j < packedBoxes.size(); j++){
+                if(packedBoxes.get(i).isOverlapping(packedBoxes.get(j))){
+                    conflictBoxes.add(new Pair<>(packedBoxes.get(i), packedBoxes.get(j)));
+                }
+            }
+        }
+        return conflictBoxes;
     }
 }

@@ -1,6 +1,6 @@
 package PackingObjects;
 
-import PlacementObjects.Point;
+import PlacementObjects.Vector3D;
 
 public class Cuboid {
     protected int width, depth, height;
@@ -26,7 +26,7 @@ public class Cuboid {
         return width*depth*height;
     }
 
-    public Point rotate(int degree_along_x, int degree_along_y, int degree_along_z) {
+    public Vector3D rotate(int degree_along_x, int degree_along_y, int degree_along_z) {
         int w = width;
         int d = depth;
         int h = height;
@@ -45,7 +45,7 @@ public class Cuboid {
             w = d;
             d = temp;
         }
-        return new Point(w, d, h);
+        return new Vector3D(w, d, h);
 
     }
 }

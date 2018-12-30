@@ -1,6 +1,10 @@
 package PackingObjects;
 
+import PlacementObjects.Placement;
+import State.LayerState;
 import State.PalletState;
+import javafx.util.Pair;
+
 import java.util.ArrayList;
 
 public class Pallet extends Cuboid {
@@ -15,8 +19,25 @@ public class Pallet extends Cuboid {
         state = new PalletState(this);
     }
 
-    public void placeBox(Box box){
+    public void placeBox(Box box) throws Exception {
         state.updateState(box);
+        state.outputState();
+        ArrayList<Pair<Box,Box>> conflicts = state.findOverlappingBoxes();
+        if(!conflicts.isEmpty()){
+            System.out.print("Box overlaps");
+        }
+    }
+
+    public void placeLayer(LayerState layerState){
+        for(Placement placement: layerState.getPlacements()){
+            placement.getBox().placeTheBox(placement.getPosition(), placement.getOrientation());
+            try {
+                state.updateState(placement.getBox());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        state.outputState();
     }
 
     public String getId() {
@@ -35,7 +56,7 @@ public class Pallet extends Cuboid {
         return state.getTotalWeight() + additionalWeight <= maxWeight?true:false;
     }
 
-    public ArrayList<FreeSpace> getFeasibleFreeSpaces(Box box){
+    public ArrayList<FreeSpace3D> getFeasibleFreeSpaces(Box box){
         return state.getFeasibleFreeSpaces(box);
     }
 

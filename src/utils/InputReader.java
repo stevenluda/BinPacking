@@ -14,7 +14,7 @@ public class InputReader {
     {
         BufferedReader br = null;
         String line = "";
-        String splitBy = " ";
+        String splitBy = "\t";
         ArrayList<Box> boxes = new ArrayList<>();
         try {
             br = new BufferedReader(new FileReader(filename));

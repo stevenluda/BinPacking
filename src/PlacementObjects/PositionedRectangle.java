@@ -1,10 +1,17 @@
 package PlacementObjects;
 
-import java.util.ArrayList;
+import PackingObjects.PackingOperations;
 
-public class PositionedRectangle extends Rectangle {
-    Point position;
-    public PositionedRectangle(int width, int depth, Point position)
+import java.util.ArrayList;
+import java.util.List;
+
+public class PositionedRectangle extends Rectangle implements PackingOperations<PositionedRectangle, PositionedRectangle> {
+    Vector3D position;
+    public PositionedRectangle(int width, int depth){
+        this(width, depth, new Vector3D(0,0,0));
+    }
+
+    public PositionedRectangle(int width, int depth, Vector3D position)
     {
         super(width, depth);
         this.position = position;
@@ -14,13 +21,31 @@ public class PositionedRectangle extends Rectangle {
         this(rt.width, rt.depth, rt.position);
     }
 
-    public Point getPosition() {
+    public Vector3D getPosition() {
         return position;
     }
     public int getXLeft(){return position.getX();}
     public int getXRight(){return position.getX() + width;}
     public int getYFront(){return position.getY();}
     public int getYBack(){return position.getY() + depth;}
+
+    public boolean enclose(PositionedRectangle pr){
+        if(pr.getXLeft() >= this.getXLeft()
+        && pr.getXRight() <= this.getXRight()
+        && pr.getYFront() >= this.getYFront()
+        && pr.getYBack() <= this.getYBack())
+            return true;
+        return false;
+    }
+
+    public boolean isOverlapping(PositionedRectangle pr){
+        if(pr.getPosition().getX() >= position.getX() + width || pr.getPosition().getX() + pr.getWidth() <= position.getX())
+            return false;
+        if(pr.getPosition().getY() >= position.getY() + depth || pr.getPosition().getY() + pr.getDepth() <= position.getY())
+            return false;
+        return true;
+    }
+
     public PositionedRectangle getHorizontalIntersection(PositionedRectangle pr)
     {
         int x, y, w, d;
@@ -77,44 +102,48 @@ public class PositionedRectangle extends Rectangle {
             }
         }
 
-        return new PositionedRectangle(w, d, new Point(x, y, position.getZ()));
+        return new PositionedRectangle(w, d, new Vector3D(x, y, position.getZ()));
     }
 
-    public ArrayList<PositionedRectangle> reduce(PositionedRectangle rect) throws Exception
-    {
-        //check if rect is within the boundaries of this rectangle
-        if(!(rect.position.getX() >= this.position.getX() && rect.position.getX() + rect.getWidth() <= this.position.getX() + this.getWidth()))
-            throw new Exception("Along width, the rect exceed the boundaries of the rect being reduced.");
-        if(!(rect.position.getY() >= this.position.getY() && rect.position.getY() + rect.getDepth() <= this.position.getY() + this.getDepth()))
-            throw new Exception("Along depth, the rect exceed the boundaries of the rect being reduced.");
-        ArrayList<PositionedRectangle> result = new ArrayList<PositionedRectangle>();
+    @Override
+    public List<PositionedRectangle> segmentSpace(PositionedRectangle rect){
+        List<PositionedRectangle> result = new ArrayList<PositionedRectangle>();
         //check if left edge is a separating line
-        if(rect.getPosition().getX() > this.position.getX())
+        if(rect.getXLeft() > this.getXLeft())
         {
             //create one new positioned rectangle
-            result.add(new PositionedRectangle(rect.getPosition().getX() - this.position.getX(), this.getDepth(), this.position));
+            result.add(new PositionedRectangle(rect.getXLeft() - this.getXLeft(), this.getDepth(), this.position));
         }
         //check if right edge is a separating line
-        if(rect.getPosition().getX() + rect.getWidth() < this.position.getX() + this.getWidth())
+        if(rect.getXRight() < this.getXRight())
         {
             //create one new positioned rectangle
-            result.add(new PositionedRectangle(this.position.getX()+ this.getWidth() - rect.getPosition().getX() - rect.getWidth(),
-                    this.getDepth(), new Point(rect.getPosition().getX()+rect.getWidth(), this.position.getY(), this.position.getZ())));
+            result.add(new PositionedRectangle(this.getXRight() - rect.getXRight(),
+                    this.getDepth(), new Vector3D(rect.getXRight(), this.getYFront(), this.position.getZ())));
         }
         //check if the front edge is a separating line
         if(rect.getPosition().getY() > this.position.getY())
         {
             //create one new positioned rectangle
-            result.add(new PositionedRectangle(this.getWidth(), rect.getPosition().getY() - this.position.getY(), this.position));
+            result.add(new PositionedRectangle(this.getWidth(), rect.getYFront() - this.getYFront(), this.position));
         }
         //check if the back edge is a separating line
-        if(rect.getPosition().getY() + rect.getDepth() < this.position.getY() + this.getDepth())
+        if(rect.getYBack() < this.getYBack())
         {
             //create one new positioned rectangle
-            result.add(new PositionedRectangle(this.getWidth(), this.getPosition().getY() + this.getDepth() - rect.getPosition().getY() - rect.getDepth(),
-                    this.position));
+            result.add(new PositionedRectangle(this.getWidth(), this.getYBack() - rect.getYBack(),
+                    new Vector3D(this.getXLeft(), rect.getYBack(), this.position.getZ())));
         }
         return result;
+    }
+
+    @Override
+    public boolean accomodate(PositionedRectangle object) {
+        if(this.width >= object.getWidth() && this.depth >= object.getDepth())
+            return true;
+        if(this.width >= object.getDepth() && this.depth >= object.getWidth())
+            return true;
+        return false;
     }
 
     public int getArea(){
