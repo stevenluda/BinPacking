@@ -11,6 +11,7 @@ import java.util.List;
 
 public class LayerState extends State {
     ArrayList<Placement> placements;
+    int layerHeight;
     int totalWeight;
     int totalUsedArea;
     ArrayList<PositionedRectangle> freespaces = new ArrayList<PositionedRectangle>();
@@ -18,6 +19,7 @@ public class LayerState extends State {
     public LayerState(){
         freespaces.add(new PositionedRectangle(Integer.parseInt(PackingConfigurationsSingleton.getProperty("width")),
                 Integer.parseInt(PackingConfigurationsSingleton.getProperty("depth"))));
+        layerHeight = 0;
         totalWeight = 0;
         totalUsedArea = 0;
         placements = new ArrayList<>();
@@ -37,6 +39,14 @@ public class LayerState extends State {
 
     public int getTotalWeight() {
         return totalWeight;
+    }
+
+    public int getLayerHeight() {
+        return layerHeight;
+    }
+
+    public void setLayerHeight(int layerHeight) {
+        this.layerHeight = layerHeight;
     }
 
     public void updateState(Box box, Vector3D position, Vector3D orientation){

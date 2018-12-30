@@ -32,6 +32,7 @@ public class LayerBuilder {
             Collections.shuffle(shuffledSequence);
             LayerState state = new LayerState();
             Box box = sameHeightBoxesMap.get(shuffledSequence.get(0));
+            state.setLayerHeight(box.getHeight());
             PositionedRectangle p = findPlacement(box, state);
             while(!shuffledSequence.isEmpty()&& p!=null){
                 Vector3D orientation = randomlyChooseAnOrientation(p, box);

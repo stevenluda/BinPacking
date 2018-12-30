@@ -28,8 +28,9 @@ public class Pallet extends Cuboid {
         }
     }
 
-    public void placeLayer(LayerState layerState){
+    public void placeLayer(LayerState layerState, int z_position){
         for(Placement placement: layerState.getPlacements()){
+            placement.getPosition().setZ(z_position);
             placement.getBox().placeTheBox(placement.getPosition(), placement.getOrientation());
             try {
                 state.updateState(placement.getBox());

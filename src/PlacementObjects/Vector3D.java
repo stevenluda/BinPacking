@@ -38,4 +38,16 @@ public class Vector3D {
     public int getZ() {
         return z;
     }
+
+    public void setX(int x) {
+        this.x = x;
+    }
+
+    public void setY(int y) {
+        this.y = y;
+    }
+
+    public void setZ(int z) {
+        this.z = z;
+    }
 }

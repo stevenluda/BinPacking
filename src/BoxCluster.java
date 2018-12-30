@@ -1,6 +1,9 @@
 import PackingObjects.Box;
 import PlacementObjects.Vector3D;
+import utils.InputReader;
+import utils.OutputWriter;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -27,6 +30,10 @@ public class BoxCluster {
     }
 
     public List<Box> findSameHeightBoxes(List<Box> boxesToPack){
+        return findSameHeightBoxes(boxesToPack, null);
+    }
+
+    public List<Box> findSameHeightBoxes(List<Box> boxesToPack, Integer targetHeight){
         //First find the unique dimension values for each box
         //For each unique dimension value, calculate the area of the other two dimensions
         List<BoxOrientation> boxOrientations = new ArrayList<>();
@@ -43,13 +50,22 @@ public class BoxCluster {
         //Find the unique dimension value with the maximal total area
         Map<Integer, List<BoxOrientation>>  boxByHeight= boxOrientations.stream().collect(groupingBy(b -> b.height));
         Map<Integer, Integer> areaByHeight = boxOrientations.stream().collect(groupingBy(b->b.height, summingInt(b->b.area)));
-        Integer bestDimensionValue = Collections.max(areaByHeight.entrySet(), Comparator.comparingInt(Map.Entry::getValue)).getKey();
+        Integer bestDimensionValue = targetHeight == null? Collections.max(areaByHeight.entrySet(), Comparator.comparingInt(Map.Entry::getValue)).getKey(): targetHeight;
 
         //Return these boxes having this dimension value
         List<BoxOrientation> boxOrientationList = boxByHeight.get(bestDimensionValue);
         boxOrientationList.forEach(b -> b.box.resetOrientation(b.dims));
         List<Box> bestHeightBoxes = boxOrientationList.stream().map(b -> b.box).collect(Collectors.toList());
         return bestHeightBoxes;
+    }
+
+    public static void main(String[] args) throws IOException {
+        InputReader reader = new InputReader();
+        ArrayList<Box> unpackedBoxes = reader.readData("src\\resources\\test_instance.txt");
+        BoxCluster boxCluster = new BoxCluster();
+        List<Box> sameHeightBoxes = boxCluster.findSameHeightBoxes(unpackedBoxes, 400);
+        OutputWriter outputWriter = new OutputWriter();
+        outputWriter.OutputBoxes(sameHeightBoxes, "SpaceDefragmentation_2Dtest.txt", false, true, true, false, false);
     }
 
 }

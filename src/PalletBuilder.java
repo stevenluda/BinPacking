@@ -7,13 +7,15 @@ import utils.FreeSpaceComparator;
 import utils.PackingConfigurationsSingleton;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 public class PalletBuilder {
-    ArrayList<Box> boxesToPack;
+    List<Box> boxesToPack;
     Box box = null;
     LayerBuilder layerBuilder = new LayerBuilder();
 
-    public PalletBuilder(ArrayList<Box> boxes)
+    public PalletBuilder(List<Box> boxes)
     {
         boxesToPack = boxes;
         layerBuilder.updateBoxesToPack(boxesToPack);
@@ -42,15 +44,40 @@ public class PalletBuilder {
             //TODO how to build multiple layers
             LayerBuilder layerBuilder = new LayerBuilder();
             layerBuilder.updateBoxesToPack(boxesToPack);
-            while(true){
+            ArrayList<LayerState> layers = new ArrayList<>();
+            while(!boxesToPack.isEmpty()){
                 LayerState layer = layerBuilder.constructLayer(10000);
+                //collect all constructed layers first,
                 if(layer != null){
-                    pallet.placeLayer(layer);
+                    layers.add(layer);
                     boxesToPack.removeAll(layer.getPackedBoxes());
-                }else{
-                    break;
                 }
             }
+            //then determine the placing sequence of layers
+            //Option 1: rank layers by density, i.e. covered area
+            layers.sort(new Comparator<LayerState>() {
+                @Override
+                public int compare(LayerState o1, LayerState o2) {
+                    if(o1.getTotalUsedArea() > o2.getTotalUsedArea())
+                        return -1;
+                    else if(o1.getTotalUsedArea() < o2.getTotalUsedArea())
+                        return 1;
+                    return 0;
+                }
+            });
+
+            for(int i = 0, h = 0, totalWeight = 0; i < layers.size(); i++){
+                LayerState layer = layers.get(i);
+                if(h + layer.getLayerHeight() < Integer.parseInt(PackingConfigurationsSingleton.getProperty("height"))
+                    && totalWeight + layer.getLayerHeight() < Integer.parseInt(PackingConfigurationsSingleton.getProperty("capacity"))
+                ){
+                    pallet.placeLayer(layer, h);
+                    h += layer.getLayerHeight();
+                    totalWeight += layer.getTotalWeight();
+                }
+            }
+
+            //TODO option 2, shuffle layers and then stack, choose the best one with maximum density in 3D.
 
 
         }

@@ -37,7 +37,10 @@ public class Box extends PositionedCuboid {
     }
 
     public String toString(){
-        return this.id +","+this.width+","+this.depth+","+this.height+","+position.getX()+","+position.getY()+","+position.getZ();
+        if(position != null)
+            return this.id +","+this.width+","+this.depth+","+this.height+","+position.getX()+","+position.getY()+","+position.getZ();
+        else
+            return this.id +","+this.width+","+this.depth+","+this.height;
     }
     /*public boolean isOverlapping(Vector3D p, Box box){
         if(p.getX() + this.getWidth() >= box.getPosition().getX()||
