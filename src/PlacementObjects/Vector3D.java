@@ -50,4 +50,8 @@ public class Vector3D {
     public void setZ(int z) {
         this.z = z;
     }
+
+    public String toString(){
+        return x+","+y+","+z;
+    }
 }

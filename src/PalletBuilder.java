@@ -6,6 +6,9 @@ import State.LayerState;
 import utils.FreeSpaceComparator;
 import utils.PackingConfigurationsSingleton;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -46,7 +49,7 @@ public class PalletBuilder {
             layerBuilder.updateBoxesToPack(boxesToPack);
             ArrayList<LayerState> layers = new ArrayList<>();
             while(!boxesToPack.isEmpty()){
-                LayerState layer = layerBuilder.constructLayer(10000);
+                LayerState layer = layerBuilder.constructLayer(100000);
                 //collect all constructed layers first,
                 if(layer != null){
                     layers.add(layer);
@@ -65,6 +68,8 @@ public class PalletBuilder {
                     return 0;
                 }
             });
+
+            writeLayers(layers);
 
             for(int i = 0, h = 0, totalWeight = 0; i < layers.size(); i++){
                 LayerState layer = layers.get(i);
@@ -128,4 +133,14 @@ public class PalletBuilder {
         return null;
     }
 
+    public void writeLayers(ArrayList<LayerState> layers) throws IOException {
+        int i = 0;
+        for(LayerState layer: layers){
+            FileWriter fileWriter = new FileWriter("test\\layer"+i+".csv");
+            PrintWriter printWriter = new PrintWriter(fileWriter);
+            printWriter.print(layer.toString2D());
+            printWriter.close();
+            i++;
+        }
+    }
 }

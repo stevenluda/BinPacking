@@ -3,6 +3,7 @@ import PackingObjects.Pallet;
 import utils.InputReader;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class MainClass {
     public static void main(String[] args)
@@ -13,9 +14,10 @@ public class MainClass {
         ArrayList<Pallet> pallets = new ArrayList<>();
 
         /**This block restricts the boxes to those having a dimension equaling to 200mm for comparison to Space Defragmentation 2D**/
-        //List<Box> sameHeightBoxes = new BoxCluster().findSameHeightBoxes(unpackedBoxes);
+        List<Box> sameHeightBoxes = new BoxCluster().findSameHeightBoxes(unpackedBoxes, 400);
+        PalletBuilder builder = new PalletBuilder(sameHeightBoxes);
         /***END**/
-        PalletBuilder builder = new PalletBuilder(unpackedBoxes);
+        //PalletBuilder builder = new PalletBuilder(unpackedBoxes);
         try {
             Pallet pallet = builder.buildPallet(true);
             if(pallet != null){

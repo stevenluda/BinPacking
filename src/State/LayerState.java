@@ -116,4 +116,12 @@ public class LayerState extends State {
     public ArrayList<Placement> getPlacements() {
         return placements;
     }
+
+    public String toString2D(){
+        String result = "";
+        for(Placement p: placements){
+            result += p.getBox().getId()+","+p.getOrientation().getX()+","+p.getOrientation().getY()+","+p.getOrientation().getZ()+","+p.getPosition().getX()+","+p.getPosition().getY()+"\r\n";
+        }
+        return result;
+    }
 }
