@@ -1,8 +1,8 @@
 package PackingObjects;
 
-import PlacementObjects.Vector3D;
 import PlacementObjects.PositionedRectangle;
 import PlacementObjects.Surface;
+import PlacementObjects.Vector3D;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +48,7 @@ public class FreeSpace3D extends PositionedCuboid implements PackingOperations<F
         {
             // the top of the physical box is a separating plane
             // determine the intersecting area
-            PositionedRectangle intersectingArea = box.getTop().getHorizontalIntersection(this.getBottom());
+            PositionedRectangle intersectingArea = box.getTop().getHorizontalIntersection(this.getPositionedBottom());
             Surface sf = new Surface(intersectingArea);
             FreeSpace3D fs = new FreeSpace3D(width, depth,position.getZ() + height - box.getZTop(),
                     new Vector3D(position.getX(), position.getY(),box.getZTop()), this.pallet, sf);
@@ -100,16 +100,6 @@ public class FreeSpace3D extends PositionedCuboid implements PackingOperations<F
         return newFreeSpace3DS;
     }
 
-    @Override
-    public boolean accomodate(Box object) {
-        if(getVolume() < object.getVolume())
-            return false;
-        if(!(dimensionFits(object.rotate(0,0,0))||dimensionFits(object.rotate(0,0,90))||
-                dimensionFits(object.rotate(0,90,0))||dimensionFits(object.rotate(0,90,90))||
-                dimensionFits(object.rotate(90,0,0))||dimensionFits(object.rotate(90,0,90))))
-            return false;
-        return true;
-    }
 
     private ArrayList<Surface> getSurfaces(int y){
         ArrayList<Surface> result = new ArrayList<>();
@@ -146,17 +136,8 @@ public class FreeSpace3D extends PositionedCuboid implements PackingOperations<F
         supportingArea += sf.getArea();
     }
 
-    public int getVolume() {
-        return width*depth*height;
-    }
-
     public int getSupportingArea(){
         return supportingArea;
     }
 
-    public boolean dimensionFits(Vector3D vector){
-        if(width >= vector.getX() && depth >= vector.getY() && height >= vector.getZ())
-            return true;
-        return false;
-    }
 }

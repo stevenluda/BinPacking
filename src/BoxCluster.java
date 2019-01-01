@@ -1,14 +1,14 @@
 import PackingObjects.Box;
-import PlacementObjects.Vector3D;
+import PackingObjects.Cuboid;
 import utils.InputReader;
 import utils.OutputWriter;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.summingInt;
 
 //This class finds a subset of boxes with the same height such that their total bottom areas are maximal
 public class BoxCluster {
@@ -16,52 +16,44 @@ public class BoxCluster {
 
     }
 
-    private class BoxOrientation{
-        Box box;
-        int height;
-        int area;
-        Vector3D dims;
-        public BoxOrientation(Box box, int height, int area, Vector3D dimsValues){
-            this.box = box;
-            this.height = height;
-            this.area = area;
-            this.dims = dimsValues;
-        }
-    }
-
-    public List<Box> findSameHeightBoxes(List<Box> boxesToPack){
+    public List<Box> findSameHeightBoxes(Map<String, Box> boxesToPack){
         return findSameHeightBoxes(boxesToPack, null);
     }
 
-    public List<Box> findSameHeightBoxes(List<Box> boxesToPack, Integer targetHeight){
+    public List<Box> findSameHeightBoxes(Map<String, Box> boxesToPack, Integer targetHeight){
+        Map<Integer, List<Box>> boxClusterByHeight = getClusters(boxesToPack);
+
+        Map<Integer, Integer> areaByHeight = boxClusterByHeight.entrySet().stream().collect(Collectors.toMap(Entry::getKey, e ->e.getValue().stream().mapToInt(box -> box.getBottomArea()).sum()));
+        Integer bestDimensionValue = targetHeight == null? Collections.max(areaByHeight.entrySet(), Comparator.comparingInt(Entry::getValue)).getKey(): targetHeight;
+
+        //Return these boxes having this dimension value
+        List<Box> boxList = boxClusterByHeight.get(bestDimensionValue);
+        //boxOrientationList.forEach(b -> b.getBox().resetOrientation(b.getOrientation()));
+        return boxList;
+    }
+
+    public Map<Integer, List<Box>> getClusters(Map<String, Box> boxesMap){
         //First find the unique dimension values for each box
         //For each unique dimension value, calculate the area of the other two dimensions
-        List<BoxOrientation> boxOrientations = new ArrayList<>();
-        for(Box box: boxesToPack){
-            boxOrientations.add(new BoxOrientation(box, box.getWidth(), box.getDepth()*box.getHeight(), new Vector3D(box.getHeight(), box.getDepth(), box.getWidth())));
+        List<Box> rotatedDuplicates = new ArrayList<>();
+        for(Box box: boxesMap.values()){
+            rotatedDuplicates.add(new Box(box, new Cuboid(box.getHeight(), box.getDepth(), box.getWidth())));
             if(box.getDepth() != box.getWidth()){
-                boxOrientations.add(new BoxOrientation(box, box.getDepth(), box.getWidth()*box.getHeight(), new Vector3D(box.getWidth(), box.getHeight(), box.getDepth())));
+                rotatedDuplicates.add(new Box(box, new Cuboid(box.getWidth(), box.getHeight(), box.getDepth())));
             }
             if(box.getHeight() != box.getWidth() && box.getHeight() != box.getDepth()){
-                boxOrientations.add(new BoxOrientation(box, box.getHeight(), box.getWidth()*box.getDepth(), new Vector3D(box.getWidth(), box.getDepth(), box.getHeight())));
+                rotatedDuplicates.add(new Box(box, new Cuboid(box.getWidth(), box.getDepth(), box.getHeight())));
             }
         }
 
         //Find the unique dimension value with the maximal total area
-        Map<Integer, List<BoxOrientation>>  boxByHeight= boxOrientations.stream().collect(groupingBy(b -> b.height));
-        Map<Integer, Integer> areaByHeight = boxOrientations.stream().collect(groupingBy(b->b.height, summingInt(b->b.area)));
-        Integer bestDimensionValue = targetHeight == null? Collections.max(areaByHeight.entrySet(), Comparator.comparingInt(Map.Entry::getValue)).getKey(): targetHeight;
-
-        //Return these boxes having this dimension value
-        List<BoxOrientation> boxOrientationList = boxByHeight.get(bestDimensionValue);
-        boxOrientationList.forEach(b -> b.box.resetOrientation(b.dims));
-        List<Box> bestHeightBoxes = boxOrientationList.stream().map(b -> b.box).collect(Collectors.toList());
-        return bestHeightBoxes;
+        Map<Integer, List<Box>> boxClusterByHeight= rotatedDuplicates.stream().collect(groupingBy(b -> b.getHeight()));
+        return boxClusterByHeight;
     }
 
     public static void main(String[] args) throws IOException {
         InputReader reader = new InputReader();
-        ArrayList<Box> unpackedBoxes = reader.readData("src\\resources\\test_instance.txt");
+        Map<String, Box> unpackedBoxes = reader.readData("src\\resources\\test_instance.txt");
         BoxCluster boxCluster = new BoxCluster();
         List<Box> sameHeightBoxes = boxCluster.findSameHeightBoxes(unpackedBoxes, 400);
         OutputWriter outputWriter = new OutputWriter();

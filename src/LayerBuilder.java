@@ -1,28 +1,31 @@
 import PackingObjects.Box;
-import PlacementObjects.Vector3D;
+import PackingObjects.Cuboid;
 import PlacementObjects.PositionedRectangle;
+import PlacementObjects.Rectangle;
 import State.LayerState;
 
 import java.util.*;
 
 public class LayerBuilder {
-    List<Box> boxesToPack = null;
+    Map<String, Box> boxesToPack = null;
     BoxCluster cluster = new BoxCluster();
     public LayerBuilder(){
 
     }
 
-    public void updateBoxesToPack(List<Box> boxesToPack){
+    public void updateBoxesToPack(Map<String, Box> boxesToPack){
         this.boxesToPack = boxesToPack;
     }
 
     public LayerState constructLayer(int nbShuffles){
         List<Box> sameHeightBoxes = cluster.findSameHeightBoxes(boxesToPack);
+
+        //TODO see if it's better to use stream?
         Map<String, Box> sameHeightBoxesMap = new HashMap<>();
         ArrayList<String> sameHeightBoxesIds = new ArrayList<>();
-        for(Box b: sameHeightBoxes){
-            sameHeightBoxesMap.put(b.getId(), b);
-            sameHeightBoxesIds.add(b.getId());
+        for(Box box: sameHeightBoxes){
+            sameHeightBoxesMap.put(box.getId(), box);
+            sameHeightBoxesIds.add(box.getId());
         }
 
         //How about randomly align boxes from left front corner to right corner
@@ -33,14 +36,14 @@ public class LayerBuilder {
             LayerState state = new LayerState();
             Box box = sameHeightBoxesMap.get(shuffledSequence.get(0));
             state.setLayerHeight(box.getHeight());
-            PositionedRectangle p = findPlacement(box, state);
+            PositionedRectangle p = findPlacement(box.getBottomRectangle(), state);
             while(!shuffledSequence.isEmpty()&& p!=null){
-                Vector3D orientation = randomlyChooseAnOrientation(p, box);
-                state.updateState(box, p.getPosition(), orientation);
+                Cuboid new_dims = randomlyChooseHorizontalOrientation(p, box.getDims());
+                state.updateState(box, p.getPosition(), new_dims);
                 shuffledSequence.remove(box.getId());
                 for(String id: shuffledSequence){
                     box = sameHeightBoxesMap.get(id);
-                    p = findPlacement(box, state);
+                    p = findPlacement(box.getBottomRectangle(), state);
                     if(p!=null)
                         break;
                 }
@@ -54,8 +57,8 @@ public class LayerBuilder {
             return bestState;
     }
 
-    public PositionedRectangle findPlacement(Box box, LayerState state){
-        ArrayList<PositionedRectangle> feasibleFreeSpaces = state.getFeasibleFreeSpaces(box);
+    public PositionedRectangle findPlacement(Rectangle boxBottom, LayerState state){
+        ArrayList<PositionedRectangle> feasibleFreeSpaces = state.getFeasibleFreeSpaces(boxBottom);
         if(feasibleFreeSpaces.isEmpty())
             return null;
         feasibleFreeSpaces.sort(new Comparator<PositionedRectangle>() {
@@ -76,19 +79,19 @@ public class LayerBuilder {
         return feasibleFreeSpaces.get(0);
     }
 
-    public Vector3D randomlyChooseAnOrientation(PositionedRectangle pr, Box box){
-        ArrayList<Vector3D> feasibleOrientations = new ArrayList<>();
-        if(box.getWidth() <= pr.getWidth() && box.getDepth() <= pr.getDepth()){
-            Vector3D tempOrientation = box.rotate(0,0,0);
+    public Cuboid randomlyChooseHorizontalOrientation(PositionedRectangle pr, Cuboid originalOrientation){
+        ArrayList<Cuboid> feasibleOrientations = new ArrayList<>();
+        if(originalOrientation.getWidth() <= pr.getWidth() && originalOrientation.getDepth() <= pr.getDepth()){
+            Cuboid tempOrientation = originalOrientation.rotate(0,0,0);
             feasibleOrientations.add(tempOrientation);
         }
-        if(box.getWidth() <= pr.getDepth() && box.getDepth() <= pr.getWidth()){
-            Vector3D tempOrientation = box.rotate(0,0,90);
+        if(originalOrientation.getWidth() <= pr.getDepth() && originalOrientation.getDepth() <= pr.getWidth()){
+            Cuboid tempOrientation = originalOrientation.rotate(0,0,90);
             feasibleOrientations.add(tempOrientation);
         }
 
         int randint = (int)(Math.random()*feasibleOrientations.size());
-        Vector3D chosenOrientation = feasibleOrientations.get(randint);
+        Cuboid chosenOrientation = feasibleOrientations.get(randint);
         return chosenOrientation;
     }
 

@@ -1,8 +1,10 @@
 package State;
 
 import PackingObjects.Box;
+import PackingObjects.Cuboid;
 import PlacementObjects.Placement;
 import PlacementObjects.PositionedRectangle;
+import PlacementObjects.Rectangle;
 import PlacementObjects.Vector3D;
 import utils.PackingConfigurationsSingleton;
 
@@ -49,11 +51,11 @@ public class LayerState extends State {
         this.layerHeight = layerHeight;
     }
 
-    public void updateState(Box box, Vector3D position, Vector3D orientation){
-        placements.add(new Placement(box, position, orientation));
+    public void updateState(Box box, Vector3D position, Cuboid cuboid){
+        placements.add(new Placement(box, position, cuboid));
         totalWeight += box.getWeight();
-        totalUsedArea += box.getBottom().getArea();
-        updateFreeSpaces(new PositionedRectangle(orientation.getX(), orientation.getY(), position));
+        totalUsedArea += cuboid.getBottomArea();
+        updateFreeSpaces(new PositionedRectangle(cuboid.getWidth(), cuboid.getDepth(), position));
     }
 
     public void updateFreeSpaces(PositionedRectangle rectangle){
@@ -103,10 +105,10 @@ public class LayerState extends State {
         freespaces.addAll(freeSpacesToAdd);
     }
 
-    public ArrayList<PositionedRectangle> getFeasibleFreeSpaces(Box box){
+    public ArrayList<PositionedRectangle> getFeasibleFreeSpaces(Rectangle boxBottom){
         ArrayList<PositionedRectangle> feasible2DFreeSpaces = new ArrayList<>();
         for(PositionedRectangle fs:freespaces){
-            if(fs.accomodate(box.getBottom()))
+            if(fs.accomodate(boxBottom))
                 feasible2DFreeSpaces.add(fs);
         }
         return feasible2DFreeSpaces;
@@ -120,7 +122,7 @@ public class LayerState extends State {
     public String toString2D(){
         String result = "";
         for(Placement p: placements){
-            result += p.getBox().getId()+","+p.getOrientation().getX()+","+p.getOrientation().getY()+","+p.getOrientation().getZ()+","+p.getPosition().getX()+","+p.getPosition().getY()+"\r\n";
+            result += p.getBox().getId()+","+p.getOrientation().getWidth()+","+p.getOrientation().getDepth()+","+p.getOrientation().getHeight()+","+p.getPosition().getX()+","+p.getPosition().getY()+"\r\n";
         }
         return result;
     }

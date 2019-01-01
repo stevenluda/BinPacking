@@ -3,16 +3,18 @@ package State;
 import PackingObjects.Box;
 import PackingObjects.FreeSpace3D;
 import PackingObjects.Pallet;
-import PlacementObjects.Vector3D;
 import PlacementObjects.PositionedRectangle;
 import PlacementObjects.Surface;
-import javafx.util.Pair;
+import PlacementObjects.Vector3D;
+
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class PalletState extends State {
     ArrayList<Box> packedBoxes = new ArrayList<Box>();
@@ -56,7 +58,7 @@ public class PalletState extends State {
         {
             if(fs.getZBottom() == box.getZTop())
             {
-                PositionedRectangle pr = fs.getBottom().getHorizontalIntersection(box.getTop());
+                PositionedRectangle pr = fs.getPositionedBottom().getHorizontalIntersection(box.getTop());
                 if(pr != null)
                 {
                     Surface sf = new Surface(pr);
@@ -88,12 +90,12 @@ public class PalletState extends State {
         }
     }
 
-    public ArrayList<Pair<Box, Box>> findOverlappingBoxes(){
-        ArrayList<Pair<Box, Box>> conflictBoxes = new ArrayList<>();
+    public Map<Box, Box> findOverlappingBoxes(){
+        Map<Box, Box> conflictBoxes = new HashMap<>();
         for(int i = 0; i < packedBoxes.size(); i++){
             for(int j = i+1; j < packedBoxes.size(); j++){
                 if(packedBoxes.get(i).isOverlapping(packedBoxes.get(j))){
-                    conflictBoxes.add(new Pair<>(packedBoxes.get(i), packedBoxes.get(j)));
+                    conflictBoxes.put(packedBoxes.get(i), packedBoxes.get(j));
                 }
             }
         }

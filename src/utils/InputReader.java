@@ -7,15 +7,17 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class InputReader {
 
-    public ArrayList<Box> readData(String filename)
+    public Map<String,Box> readData(String filename)
     {
         BufferedReader br = null;
         String line = "";
         String splitBy = "\t";
-        ArrayList<Box> boxes = new ArrayList<>();
+        Map<String, Box> boxes = new HashMap<>();
         try {
             br = new BufferedReader(new FileReader(filename));
             br.readLine();
@@ -28,7 +30,7 @@ public class InputReader {
                 int weight = Integer.parseInt(attributes[4]);
                 int loadCapacity = Integer.parseInt(attributes[5]);
                 String supportType = attributes[6];
-                boxes.add(new Box(id, width, depth, height, weight, null));
+                boxes.put(id, new Box(id, width, depth, height, weight, null));
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();

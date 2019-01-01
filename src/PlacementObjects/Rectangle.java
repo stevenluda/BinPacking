@@ -1,6 +1,6 @@
 package PlacementObjects;
 
-public class Rectangle {
+public class Rectangle{
     int width;
     int depth;
 
@@ -25,5 +25,15 @@ public class Rectangle {
         this.width = width;
     }
 
+    public int getArea(){
+        return width*depth;
+    }
 
+    public boolean accomodate(Rectangle object) {
+        if(this.width >= object.getWidth() && this.depth >= object.getDepth())
+            return true;
+        if(this.width >= object.getDepth() && this.depth >= object.getWidth())
+            return true;
+        return false;
+    }
 }

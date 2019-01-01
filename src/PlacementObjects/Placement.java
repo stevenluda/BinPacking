@@ -1,12 +1,13 @@
 package PlacementObjects;
 
 import PackingObjects.Box;
+import PackingObjects.Cuboid;
 
 public class Placement {
     private Box box;
     private Vector3D position;
-    private Vector3D orientation;
-    public Placement(Box box, Vector3D position, Vector3D orientation){
+    private Cuboid orientation;
+    public Placement(Box box, Vector3D position, Cuboid orientation){
         this.box = box;
         this.position = position;
         this.orientation = orientation;
@@ -20,7 +21,7 @@ public class Placement {
         return position;
     }
 
-    public Vector3D getOrientation() {
+    public Cuboid getOrientation() {
         return orientation;
     }
 }

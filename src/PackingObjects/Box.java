@@ -17,6 +17,15 @@ public class Box extends PositionedCuboid {
         this.id = id;
     }
 
+    public Box(Box box){
+        this(box.getId(), box.getWidth(), box.getDepth(), box.getHeight(), box.getWeight(), box.getPosition());
+    }
+
+    public Box(Box box, Cuboid new_dims){
+        this(box);
+        this.setDims(new_dims);
+    }
+
     public String getId() {
         return id;
     }
@@ -25,15 +34,19 @@ public class Box extends PositionedCuboid {
         return weight;
     }
 
-    public void resetOrientation(Vector3D vec){
-        width = vec.getX();
-        depth = vec.getY();
-        height = vec.getZ();
+    public void setDims(Cuboid vec){
+        width = vec.getWidth();
+        depth = vec.getDepth();
+        height = vec.getHeight();
     }
 
-    public void placeTheBox(Vector3D pos, Vector3D orientation){
+    public Cuboid getDims(){
+        return new Cuboid(width, depth, height);
+    }
+
+    public void placeTheBox(Vector3D pos, Cuboid orientation){
         this.setPosition(pos);
-        this.resetOrientation(orientation);
+        this.setDims(orientation);
     }
 
     public String toString(){

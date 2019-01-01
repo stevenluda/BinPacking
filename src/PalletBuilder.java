@@ -1,4 +1,5 @@
 import PackingObjects.Box;
+import PackingObjects.Cuboid;
 import PackingObjects.FreeSpace3D;
 import PackingObjects.Pallet;
 import PlacementObjects.Vector3D;
@@ -12,13 +13,15 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class PalletBuilder {
-    List<Box> boxesToPack;
+    Map<String, Box> boxesToPack;
     Box box = null;
     LayerBuilder layerBuilder = new LayerBuilder();
 
-    public PalletBuilder(List<Box> boxes)
+    public PalletBuilder(Map<String, Box> boxes)
     {
         boxesToPack = boxes;
         layerBuilder.updateBoxesToPack(boxesToPack);
@@ -43,8 +46,6 @@ public class PalletBuilder {
         }
 
         if(buildByLayer){
-            //TODO how to avoid multiple boxToPack in many classes
-            //TODO how to build multiple layers
             LayerBuilder layerBuilder = new LayerBuilder();
             layerBuilder.updateBoxesToPack(boxesToPack);
             ArrayList<LayerState> layers = new ArrayList<>();
@@ -53,7 +54,7 @@ public class PalletBuilder {
                 //collect all constructed layers first,
                 if(layer != null){
                     layers.add(layer);
-                    boxesToPack.removeAll(layer.getPackedBoxes());
+                    boxesToPack.keySet().removeAll(layer.getPackedBoxes().stream().map(box1 -> box1.getId()).collect(Collectors.toList()));
                 }
             }
             //then determine the placing sequence of layers
@@ -91,7 +92,7 @@ public class PalletBuilder {
     }
 
     private Box findPlacement(Pallet pallet){
-        for(Box box: boxesToPack){
+        for(Box box: boxesToPack.values()){
             ArrayList<FreeSpace3D> fss = pallet.getFeasibleFreeSpaces(box);
             if(!fss.isEmpty()){
                 //add comparator for sorting free spaces
@@ -101,8 +102,8 @@ public class PalletBuilder {
                 FreeSpace3D fs = fss.get(0);
                 box.setPosition(fs.getPosition());
                 //randomly finds a box orientation
-                ArrayList<Vector3D> feasibleOrientations = new ArrayList<>();
-                Vector3D tempOrientation = box.rotate(0,0,0);
+                ArrayList<Cuboid> feasibleOrientations = new ArrayList<>();
+                Cuboid tempOrientation = box.rotate(0,0,0);
                 if(fs.dimensionFits(tempOrientation))
                     feasibleOrientations.add(tempOrientation);
                 tempOrientation = box.rotate(0,0,90);
@@ -125,8 +126,8 @@ public class PalletBuilder {
                     randint = 3;
                 if(box.getId().equals("1501402"))
                     randint = 4;*/
-                Vector3D chosenOrientation = feasibleOrientations.get(randint);
-                box.resetOrientation(chosenOrientation);
+                Cuboid chosenOrientation = feasibleOrientations.get(randint);
+                box.setDims(chosenOrientation);
                 return box;
             }
         }

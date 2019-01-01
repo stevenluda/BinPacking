@@ -3,9 +3,9 @@ package PackingObjects;
 import PlacementObjects.Placement;
 import State.LayerState;
 import State.PalletState;
-import javafx.util.Pair;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 public class Pallet extends Cuboid {
     int maxWeight;
@@ -22,7 +22,7 @@ public class Pallet extends Cuboid {
     public void placeBox(Box box) throws Exception {
         state.updateState(box);
         state.outputState();
-        ArrayList<Pair<Box,Box>> conflicts = state.findOverlappingBoxes();
+        Map<Box,Box> conflicts = state.findOverlappingBoxes();
         if(!conflicts.isEmpty()){
             System.out.print("Box overlaps");
         }

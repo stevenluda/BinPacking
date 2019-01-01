@@ -1,1 +1,12 @@
 .idea/
+test/layer2.csv
+test/layer3.csv
+test/layer4.csv
+test/layer5.csv
+test/layer6.csv
+test/layer7.csv
+test/layer0.csv
+test/layer1.csv
+*.class
+out/production/BinPacking/resources/packing.properties
+out/production/BinPacking/resources/test_instance.txt

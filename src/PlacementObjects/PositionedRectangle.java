@@ -136,17 +136,4 @@ public class PositionedRectangle extends Rectangle implements PackingOperations<
         }
         return result;
     }
-
-    @Override
-    public boolean accomodate(PositionedRectangle object) {
-        if(this.width >= object.getWidth() && this.depth >= object.getDepth())
-            return true;
-        if(this.width >= object.getDepth() && this.depth >= object.getWidth())
-            return true;
-        return false;
-    }
-
-    public int getArea(){
-        return width*depth;
-    }
 }

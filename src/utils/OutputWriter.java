@@ -9,7 +9,7 @@ import java.util.List;
 
 public class OutputWriter {
     public void OutputBoxes(List<Box> boxes, String output_filename, boolean writeBoxId, boolean writeWidth, boolean writeDepth, boolean writeHeight, boolean writePosition) throws IOException {
-        FileWriter fileWriter = new FileWriter("src\\resources\\"+output_filename);
+        FileWriter fileWriter = new FileWriter("src\\test\\"+output_filename);
         PrintWriter printWriter = new PrintWriter(fileWriter);
         for(Box box: boxes){
             if(writeBoxId)
