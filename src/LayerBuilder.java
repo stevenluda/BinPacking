@@ -5,6 +5,7 @@ import PlacementObjects.Rectangle;
 import State.LayerState;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class LayerBuilder {
     Map<String, Box> boxesToPack = null;
@@ -17,50 +18,71 @@ public class LayerBuilder {
         this.boxesToPack = boxesToPack;
     }
 
-    public LayerState constructLayer(int nbShuffles){
+    public LayerState getBestLayer(int nbShuffles){
         List<Box> sameHeightBoxes = cluster.findSameHeightBoxes(boxesToPack);
 
-        //TODO see if it's better to use stream?
+        LayerState bestState = constructLayers(sameHeightBoxes, nbShuffles, nbShuffles, true).iterator().next();
+        if(bestState.getTotalUsedArea() == 0)
+            return null;
+        else
+            return bestState;
+    }
+    public Set<LayerState> constructLayers(List<Box> sameHeightBoxes, int nbShuffles, int nbLayersNeeded, boolean needBest){
         Map<String, Box> sameHeightBoxesMap = new HashMap<>();
         ArrayList<String> sameHeightBoxesIds = new ArrayList<>();
         for(Box box: sameHeightBoxes){
             sameHeightBoxesMap.put(box.getId(), box);
             sameHeightBoxesIds.add(box.getId());
         }
-
-        //How about randomly align boxes from left front corner to right corner
-        LayerState bestState = new LayerState();
+        Set<LayerState> layers = new HashSet<>();
+        layers.add(new LayerState());
         for(int i = 0; i < nbShuffles; i++){
             ArrayList<String> shuffledSequence = new ArrayList<>(sameHeightBoxesIds);
             Collections.shuffle(shuffledSequence);
             LayerState state = new LayerState();
             Box box = sameHeightBoxesMap.get(shuffledSequence.get(0));
             state.setLayerHeight(box.getHeight());
-            PositionedRectangle p = findPlacement(box.getBottomRectangle(), state);
+            PositionedRectangle p = findPlacementPosition(box.getBottomRectangle(), state);
             while(!shuffledSequence.isEmpty()&& p!=null){
                 Cuboid new_dims = randomlyChooseHorizontalOrientation(p, box.getDims());
                 state.updateState(box, p.getPosition(), new_dims);
                 shuffledSequence.remove(box.getId());
                 for(String id: shuffledSequence){
                     box = sameHeightBoxesMap.get(id);
-                    p = findPlacement(box.getBottomRectangle(), state);
+                    p = findPlacementPosition(box.getBottomRectangle(), state);
                     if(p!=null)
                         break;
                 }
             }
-            if(bestState.getTotalUsedArea() < state.getTotalUsedArea())
-                bestState = state;
+            if(needBest){
+                if(layers.iterator().next().getTotalUsedArea() < state.getTotalUsedArea()) {
+                    layers.clear();
+                    layers.add(state);
+                }
+            }else{
+                //check if the layer is same to any layer generated before
+                layers.add(state);
+            }
         }
-        if(bestState.getTotalUsedArea() == 0)
-            return null;
-        else
-            return bestState;
+        return layers;
     }
 
-    public PositionedRectangle findPlacement(Rectangle boxBottom, LayerState state){
+    public List<LayerState> generateLayers(List<Box> sameHeightBoxes, int nbShuffles){
+
+
+    }
+
+    public Map<Integer, List<LayerState>> generateLayers(int nbShuffles){
+        Map<Integer, List<Box>> boxClusters = cluster.getClusters(boxesToPack);
+        Map<Integer,List<LayerState>> layersByHeight = boxClusters.entrySet().stream().collect(Collectors.toMap(cluster->cluster.getKey(), cluster -> ))
+
+    }
+
+    public PositionedRectangle findPlacementPosition(Rectangle boxBottom, LayerState state){
         ArrayList<PositionedRectangle> feasibleFreeSpaces = state.getFeasibleFreeSpaces(boxBottom);
         if(feasibleFreeSpaces.isEmpty())
             return null;
+        //This comparator gives priority to position towards left front of the plane
         feasibleFreeSpaces.sort(new Comparator<PositionedRectangle>() {
             @Override
             public int compare(PositionedRectangle o1, PositionedRectangle o2) {

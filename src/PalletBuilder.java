@@ -50,7 +50,7 @@ public class PalletBuilder {
             layerBuilder.updateBoxesToPack(boxesToPack);
             ArrayList<LayerState> layers = new ArrayList<>();
             while(!boxesToPack.isEmpty()){
-                LayerState layer = layerBuilder.constructLayer(100000);
+                LayerState layer = layerBuilder.getBestLayer(100000);
                 //collect all constructed layers first,
                 if(layer != null){
                     layers.add(layer);

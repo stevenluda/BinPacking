@@ -8,19 +8,21 @@ import PlacementObjects.Rectangle;
 import PlacementObjects.Vector3D;
 import utils.PackingConfigurationsSingleton;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class LayerState extends State {
     ArrayList<Placement> placements;
+    int numberOfBoxes;
     int layerHeight;
     int totalWeight;
     int totalUsedArea;
+    Set<String> boxIds = new HashSet<>();
     ArrayList<PositionedRectangle> freespaces = new ArrayList<PositionedRectangle>();
 
     public LayerState(){
         freespaces.add(new PositionedRectangle(Integer.parseInt(PackingConfigurationsSingleton.getProperty("width")),
                 Integer.parseInt(PackingConfigurationsSingleton.getProperty("depth"))));
+        numberOfBoxes = 0;
         layerHeight = 0;
         totalWeight = 0;
         totalUsedArea = 0;
@@ -39,6 +41,14 @@ public class LayerState extends State {
         return boxes;
     }
 
+    public int getNumberOfBoxes() {
+        return numberOfBoxes;
+    }
+
+    public Set<String> getBoxIds() {
+        return boxIds;
+    }
+
     public int getTotalWeight() {
         return totalWeight;
     }
@@ -53,6 +63,8 @@ public class LayerState extends State {
 
     public void updateState(Box box, Vector3D position, Cuboid cuboid){
         placements.add(new Placement(box, position, cuboid));
+        boxIds.add(box.getId());
+        numberOfBoxes++;
         totalWeight += box.getWeight();
         totalUsedArea += cuboid.getBottomArea();
         updateFreeSpaces(new PositionedRectangle(cuboid.getWidth(), cuboid.getDepth(), position));
@@ -125,5 +137,33 @@ public class LayerState extends State {
             result += p.getBox().getId()+","+p.getOrientation().getWidth()+","+p.getOrientation().getDepth()+","+p.getOrientation().getHeight()+","+p.getPosition().getX()+","+p.getPosition().getY()+"\r\n";
         }
         return result;
+    }
+
+    @Override
+    public boolean equals(Object obj){
+        if(obj == null) return false;
+        if(!(obj instanceof LayerState))
+            return false;
+        if(obj == this) return true;
+        if(this.getLayerHeight() != ((LayerState)obj).getLayerHeight())
+            return false;
+        if(this.getNumberOfBoxes() != ((LayerState)obj).getNumberOfBoxes())
+            return false;
+        if(this.getTotalUsedArea() != ((LayerState)obj).getTotalUsedArea())
+            return false;
+        if(this.getTotalWeight() != ((LayerState)obj).getTotalWeight())
+            return false;
+        if(this.freespaces.size() != ((LayerState)obj).freespaces.size())
+            return false;
+        if(!this.getBoxIds().equals(((LayerState)obj).getBoxIds()))
+            return false;
+        return true;
+    }
+
+    @Override
+    public int hashCode(){
+        return Objects.hash(this.getLayerHeight(), this.getNumberOfBoxes(), this.getTotalUsedArea(),
+                                       this.getTotalWeight(), this.freespaces.size(),
+                                        Arrays.hashCode(this.getBoxIds().toArray()));
     }
 }
