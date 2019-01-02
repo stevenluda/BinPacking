@@ -2,7 +2,6 @@ import PackingObjects.Box;
 import PackingObjects.Cuboid;
 import PackingObjects.FreeSpace3D;
 import PackingObjects.Pallet;
-import PlacementObjects.Vector3D;
 import State.LayerState;
 import utils.FreeSpaceComparator;
 import utils.PackingConfigurationsSingleton;
@@ -48,6 +47,9 @@ public class PalletBuilder {
         if(buildByLayer){
             LayerBuilder layerBuilder = new LayerBuilder();
             layerBuilder.updateBoxesToPack(boxesToPack);
+            /***********TEST*********/
+            Map<Integer, List<LayerState>> layersGroupByHeight = layerBuilder.generateLayers(100000);
+            /***********/
             ArrayList<LayerState> layers = new ArrayList<>();
             while(!boxesToPack.isEmpty()){
                 LayerState layer = layerBuilder.getBestLayer(100000);

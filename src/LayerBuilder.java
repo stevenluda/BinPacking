@@ -21,13 +21,13 @@ public class LayerBuilder {
     public LayerState getBestLayer(int nbShuffles){
         List<Box> sameHeightBoxes = cluster.findSameHeightBoxes(boxesToPack);
 
-        LayerState bestState = constructLayers(sameHeightBoxes, nbShuffles, nbShuffles, true).iterator().next();
+        LayerState bestState = constructLayers(sameHeightBoxes, nbShuffles, true).iterator().next();
         if(bestState.getTotalUsedArea() == 0)
             return null;
         else
             return bestState;
     }
-    public Set<LayerState> constructLayers(List<Box> sameHeightBoxes, int nbShuffles, int nbLayersNeeded, boolean needBest){
+    public Set<LayerState> constructLayers(List<Box> sameHeightBoxes, int nbShuffles, boolean needBest){
         Map<String, Box> sameHeightBoxesMap = new HashMap<>();
         ArrayList<String> sameHeightBoxesIds = new ArrayList<>();
         for(Box box: sameHeightBoxes){
@@ -35,7 +35,8 @@ public class LayerBuilder {
             sameHeightBoxesIds.add(box.getId());
         }
         Set<LayerState> layers = new HashSet<>();
-        layers.add(new LayerState());
+        if(needBest)
+            layers.add(new LayerState());
         for(int i = 0; i < nbShuffles; i++){
             ArrayList<String> shuffledSequence = new ArrayList<>(sameHeightBoxesIds);
             Collections.shuffle(shuffledSequence);
@@ -68,14 +69,15 @@ public class LayerBuilder {
     }
 
     public List<LayerState> generateLayers(List<Box> sameHeightBoxes, int nbShuffles){
-
-
+        Set<LayerState> layers = constructLayers(sameHeightBoxes, nbShuffles, false);
+        return layers.stream().sorted(Comparator.comparing(LayerState::getTotalUsedArea).reversed()).collect(Collectors.toList());
     }
 
     public Map<Integer, List<LayerState>> generateLayers(int nbShuffles){
         Map<Integer, List<Box>> boxClusters = cluster.getClusters(boxesToPack);
-        Map<Integer,List<LayerState>> layersByHeight = boxClusters.entrySet().stream().collect(Collectors.toMap(cluster->cluster.getKey(), cluster -> ))
-
+        Map<Integer,List<LayerState>> layersByHeight = boxClusters.entrySet().stream()
+                .collect(Collectors.toMap(cluster->cluster.getKey(), cluster ->generateLayers(cluster.getValue(), nbShuffles)));
+        return layersByHeight;
     }
 
     public PositionedRectangle findPlacementPosition(Rectangle boxBottom, LayerState state){
