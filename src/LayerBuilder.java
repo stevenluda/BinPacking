@@ -75,6 +75,36 @@ public class LayerBuilder {
 
     public Map<Integer, List<LayerState>> generateLayers(int nbShuffles){
         Map<Integer, List<Box>> boxClusters = cluster.getClusters(boxesToPack);
+        List<List<Box>> clusterLists = boxClusters.values().stream().collect(Collectors.toList());
+        //TODO filter the clusters so that a few large clusters suffice to cover all boxes
+        //order the clusters in decreasing order of number of boxes
+        Comparator<List<Box>> comparator = Comparator.comparing(List::size);
+        Collections.sort(clusterLists, comparator.reversed());
+        Set<String> boxIds = new HashSet(boxesToPack.keySet());
+        Set<String> coveredBoxIdsSoFar = new HashSet<>();
+        Set<Integer> clusterKeysToRemove = new HashSet<>();
+        Set<Integer> clusterKeysToKeep = new HashSet<>();
+        for(List<Box> cluster: clusterLists){
+            Set<String> boxesInCluster = cluster.stream().map(box->box.getId()).collect(Collectors.toSet());
+            Set<String> intersection = new HashSet<String>(boxIds); // use the copy constructor
+            intersection.retainAll(boxesInCluster);
+            if(intersection.size() > 0){
+                coveredBoxIdsSoFar.addAll(boxesInCluster);
+                boxIds.removeAll(boxesInCluster);
+                clusterKeysToKeep.add(cluster.get(0).getHeight());
+            }else{
+                // the cluster should contain boxes already covered by previous clusters
+                // But the cluster is large enough, it may still generate good layers, so keep it
+                // Only remove if the cluster is not large enough
+                if(boxesInCluster.size() < boxesToPack.size()/20){
+                    clusterKeysToRemove.add(cluster.get(0).getHeight());
+                }else{
+                    clusterKeysToKeep.add(cluster.get(0).getHeight());
+                }
+            }
+        }
+
+        boxClusters.keySet().removeAll(clusterKeysToRemove);
         Map<Integer,List<LayerState>> layersByHeight = boxClusters.entrySet().stream()
                 .collect(Collectors.toMap(cluster->cluster.getKey(), cluster ->generateLayers(cluster.getValue(), nbShuffles)));
         return layersByHeight;

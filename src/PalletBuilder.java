@@ -48,7 +48,7 @@ public class PalletBuilder {
             LayerBuilder layerBuilder = new LayerBuilder();
             layerBuilder.updateBoxesToPack(boxesToPack);
             /***********TEST*********/
-            Map<Integer, List<LayerState>> layersGroupByHeight = layerBuilder.generateLayers(100000);
+            Map<Integer, List<LayerState>> layersGroupByHeight = layerBuilder.generateLayers(40000);
             /***********/
             ArrayList<LayerState> layers = new ArrayList<>();
             while(!boxesToPack.isEmpty()){
