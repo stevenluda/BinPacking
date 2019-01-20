@@ -1,7 +1,7 @@
-package PlacementObjects;
+package main.PlacementObjects;
 
-import PackingObjects.Box;
-import PackingObjects.Cuboid;
+import main.PackingObjects.Box;
+import main.PackingObjects.Cuboid;
 
 public class Placement {
     private Box box;

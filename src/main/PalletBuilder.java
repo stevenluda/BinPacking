@@ -1,10 +1,12 @@
-import PackingObjects.Box;
-import PackingObjects.Cuboid;
-import PackingObjects.FreeSpace3D;
-import PackingObjects.Pallet;
-import State.LayerState;
-import utils.FreeSpaceComparator;
-import utils.PackingConfigurationsSingleton;
+package main;
+
+import main.PackingObjects.Box;
+import main.PackingObjects.Cuboid;
+import main.PackingObjects.FreeSpace3D;
+import main.PackingObjects.Pallet;
+import main.State.LayerState;
+import main.utils.FreeSpaceComparator;
+import main.utils.PackingConfigurationsSingleton;
 
 import java.io.FileWriter;
 import java.io.IOException;

@@ -1,18 +1,17 @@
-package utils;
+package main.utils;
 
-import PackingObjects.Box;
+import main.PackingObjects.Box;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 public class InputReader {
 
-    public Map<String,Box> readData(String filename)
+    public Map<String, Box> readData(String filename)
     {
         BufferedReader br = null;
         String line = "";

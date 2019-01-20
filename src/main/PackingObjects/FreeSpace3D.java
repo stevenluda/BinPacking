@@ -1,8 +1,8 @@
-package PackingObjects;
+package main.PackingObjects;
 
-import PlacementObjects.PositionedRectangle;
-import PlacementObjects.Surface;
-import PlacementObjects.Vector3D;
+import main.PlacementObjects.PositionedRectangle;
+import main.PlacementObjects.Surface;
+import main.PlacementObjects.Vector3D;
 
 import java.util.ArrayList;
 import java.util.List;

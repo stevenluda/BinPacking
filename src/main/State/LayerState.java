@@ -1,12 +1,12 @@
-package State;
+package main.State;
 
-import PackingObjects.Box;
-import PackingObjects.Cuboid;
-import PlacementObjects.Placement;
-import PlacementObjects.PositionedRectangle;
-import PlacementObjects.Rectangle;
-import PlacementObjects.Vector3D;
-import utils.PackingConfigurationsSingleton;
+import main.PackingObjects.Box;
+import main.PackingObjects.Cuboid;
+import main.PlacementObjects.Placement;
+import main.PlacementObjects.PositionedRectangle;
+import main.PlacementObjects.Rectangle;
+import main.PlacementObjects.Vector3D;
+import main.utils.PackingConfigurationsSingleton;
 
 import java.util.*;
 

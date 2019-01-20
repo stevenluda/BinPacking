@@ -1,7 +1,7 @@
-package PackingObjects;
+package main.PackingObjects;
 
-import PlacementObjects.PositionedRectangle;
-import PlacementObjects.Vector3D;
+import main.PlacementObjects.PositionedRectangle;
+import main.PlacementObjects.Vector3D;
 
 public class PositionedCuboid extends Cuboid {
     Vector3D position;

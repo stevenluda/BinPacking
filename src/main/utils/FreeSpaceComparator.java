@@ -1,6 +1,6 @@
-package utils;
+package main.utils;
 
-import PackingObjects.FreeSpace3D;
+import main.PackingObjects.FreeSpace3D;
 
 import java.util.Comparator;
 

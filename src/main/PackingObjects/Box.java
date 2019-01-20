@@ -1,7 +1,7 @@
-package PackingObjects;
+package main.PackingObjects;
 
 
-import PlacementObjects.Vector3D;
+import main.PlacementObjects.Vector3D;
 
 import java.util.ArrayList;
 

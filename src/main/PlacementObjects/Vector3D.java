@@ -1,4 +1,4 @@
-package PlacementObjects;
+package main.PlacementObjects;
 
 public class Vector3D {
     int x, y, z;

@@ -1,8 +1,8 @@
-package PackingObjects;
+package main.PackingObjects;
 
-import PlacementObjects.Placement;
-import State.LayerState;
-import State.PalletState;
+import main.PlacementObjects.Placement;
+import main.State.LayerState;
+import main.State.PalletState;
 
 import java.util.ArrayList;
 import java.util.Map;

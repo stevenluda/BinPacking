@@ -1,8 +1,10 @@
-import PackingObjects.Box;
-import PackingObjects.Cuboid;
-import PlacementObjects.PositionedRectangle;
-import PlacementObjects.Rectangle;
-import State.LayerState;
+package main;
+
+import main.PackingObjects.Box;
+import main.PackingObjects.Cuboid;
+import main.PlacementObjects.PositionedRectangle;
+import main.PlacementObjects.Rectangle;
+import main.State.LayerState;
 
 import java.util.*;
 import java.util.stream.Collectors;

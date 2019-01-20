@@ -1,6 +1,6 @@
-package PlacementObjects;
+package main.PlacementObjects;
 
-import PackingObjects.PackingOperations;
+import main.PackingObjects.PackingOperations;
 
 import java.util.ArrayList;
 import java.util.List;

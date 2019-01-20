@@ -1,7 +1,9 @@
-import PackingObjects.Box;
-import PackingObjects.Cuboid;
-import utils.InputReader;
-import utils.OutputWriter;
+package main;
+
+import main.PackingObjects.Box;
+import main.PackingObjects.Cuboid;
+import main.utils.InputReader;
+import main.utils.OutputWriter;
 
 import java.io.IOException;
 import java.util.*;
@@ -53,7 +55,7 @@ public class BoxCluster {
 
     public static void main(String[] args) throws IOException {
         InputReader reader = new InputReader();
-        Map<String, Box> unpackedBoxes = reader.readData("src\\resources\\test_instance.txt");
+        Map<String, Box> unpackedBoxes = reader.readData("src\\main.Constraints.resources\\test_instance.txt");
         BoxCluster boxCluster = new BoxCluster();
         List<Box> sameHeightBoxes = boxCluster.findSameHeightBoxes(unpackedBoxes, 400);
         OutputWriter outputWriter = new OutputWriter();

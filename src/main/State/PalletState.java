@@ -1,11 +1,11 @@
-package State;
+package main.State;
 
-import PackingObjects.Box;
-import PackingObjects.FreeSpace3D;
-import PackingObjects.Pallet;
-import PlacementObjects.PositionedRectangle;
-import PlacementObjects.Surface;
-import PlacementObjects.Vector3D;
+import main.PackingObjects.Box;
+import main.PackingObjects.FreeSpace3D;
+import main.PackingObjects.Pallet;
+import main.PlacementObjects.PositionedRectangle;
+import main.PlacementObjects.Surface;
+import main.PlacementObjects.Vector3D;
 
 
 import java.io.BufferedWriter;

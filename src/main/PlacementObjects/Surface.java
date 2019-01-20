@@ -1,4 +1,4 @@
-package PlacementObjects;
+package main.PlacementObjects;
 
 import java.util.ArrayList;
 import java.util.List;

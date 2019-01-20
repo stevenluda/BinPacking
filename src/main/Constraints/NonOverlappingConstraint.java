@@ -1,4 +1,4 @@
-package Constraints;
+package main.Constraints;
 
 public class NonOverlappingConstraint extends Constraint {
 

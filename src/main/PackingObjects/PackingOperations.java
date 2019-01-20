@@ -1,4 +1,4 @@
-package PackingObjects;
+package main.PackingObjects;
 
 import java.util.List;
 

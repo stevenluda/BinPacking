@@ -1,6 +1,6 @@
-package PackingObjects;
+package main.PackingObjects;
 
-import PlacementObjects.Rectangle;
+import main.PlacementObjects.Rectangle;
 
 public class Cuboid{
     protected int width, depth, height;

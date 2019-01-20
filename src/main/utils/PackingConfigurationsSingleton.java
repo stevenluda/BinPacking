@@ -1,4 +1,4 @@
-package utils;
+package main.utils;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -10,7 +10,7 @@ public class PackingConfigurationsSingleton {
     private static Properties prop;
     private PackingConfigurationsSingleton(){
         try {
-            FileInputStream is = new FileInputStream("src/resources/packing.properties");
+            FileInputStream is = new FileInputStream("src/main.Constraints.resources/packing.properties");
             prop = new Properties();
             prop.load(is);
             is.close();

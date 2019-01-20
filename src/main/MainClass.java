@@ -1,6 +1,8 @@
-import PackingObjects.Box;
-import PackingObjects.Pallet;
-import utils.InputReader;
+package main;
+
+import main.PackingObjects.Box;
+import main.PackingObjects.Pallet;
+import main.utils.InputReader;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -9,7 +11,7 @@ public class MainClass {
     public static void main(String[] args)
     {
         InputReader reader = new InputReader();
-        Map<String, Box> unpackedBoxes = reader.readData("src\\resources\\test_instance.txt");
+        Map<String, Box> unpackedBoxes = reader.readData("src\\main.Constraints.resources\\test_instance.txt");
 
         ArrayList<Pallet> pallets = new ArrayList<>();
 
