@@ -75,7 +75,7 @@ public class LayerBuilder {
         return layers.stream().sorted(Comparator.comparing(LayerState::getTotalUsedArea).reversed()).collect(Collectors.toList());
     }
 
-    public Map<Integer, List<LayerState>> generateLayers(int nbShuffles){
+    public Map<Integer, List<LayerState>> generateLayers(int nbShuffles, double clusterSizeAsPercentageThreshold){
         Map<Integer, List<Box>> boxClusters = cluster.getClusters(boxesToPack);
         List<List<Box>> clusterLists = boxClusters.values().stream().collect(Collectors.toList());
         //TODO filter the clusters so that a few large clusters suffice to cover all boxes
@@ -98,7 +98,7 @@ public class LayerBuilder {
                 // the cluster should contain boxes already covered by previous clusters
                 // But the cluster is large enough, it may still generate good layers, so keep it
                 // Only remove if the cluster is not large enough
-                if(boxesInCluster.size() < boxesToPack.size()/20){
+                if(boxesInCluster.size() < boxesToPack.size() * clusterSizeAsPercentageThreshold){
                     clusterKeysToRemove.add(cluster.get(0).getHeight());
                 }else{
                     clusterKeysToKeep.add(cluster.get(0).getHeight());

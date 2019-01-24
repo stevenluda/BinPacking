@@ -4,3 +4,4 @@ target
 packed_boxes.txt
 *.class
 out
+test

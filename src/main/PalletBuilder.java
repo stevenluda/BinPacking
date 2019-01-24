@@ -11,11 +11,11 @@ import main.utils.PackingConfigurationsSingleton;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import ilog.concert.*;
+import ilog.cplex.*;
 
 public class PalletBuilder {
     Map<String, Box> boxesToPack;
@@ -29,7 +29,7 @@ public class PalletBuilder {
         //TODO: create pallet dimension object
 
     }
-
+    //TODO change the output to be a list of pallets
     public Pallet buildPallet(boolean buildByLayer) throws Exception {
         Pallet pallet = new Pallet("Pallet", Integer.parseInt(PackingConfigurationsSingleton.getProperty("width")),
                 Integer.parseInt(PackingConfigurationsSingleton.getProperty("depth")),
@@ -49,10 +49,13 @@ public class PalletBuilder {
         if(buildByLayer){
             LayerBuilder layerBuilder = new LayerBuilder();
             layerBuilder.updateBoxesToPack(boxesToPack);
-            /***********TEST*********/
-            Map<Integer, List<LayerState>> layersGroupByHeight = layerBuilder.generateLayers(40000);
-            /***********/
-            ArrayList<LayerState> layers = new ArrayList<>();
+            Map<Integer, List<LayerState>> layersGroupByHeight = layerBuilder.generateLayers(40000, 0.2);
+            //solve a set covering problem to cover all boxes with the generated layers using the minimum number of layers
+            List<LayerState> selectedLayers = solveSetCovering(layersGroupByHeight);
+            //solve a 1-D bin packing problem with layer heights subject to pallet height constraint
+            //List<Pallet> pallets = solveOneDimBinPacking(selectedLayers);
+
+            /*ArrayList<LayerState> layers = new ArrayList<>();
             while(!boxesToPack.isEmpty()){
                 LayerState layer = layerBuilder.getBestLayer(100000);
                 //collect all constructed layers first,
@@ -60,10 +63,10 @@ public class PalletBuilder {
                     layers.add(layer);
                     boxesToPack.keySet().removeAll(layer.getPackedBoxes().stream().map(box1 -> box1.getId()).collect(Collectors.toList()));
                 }
-            }
+            }*/
             //then determine the placing sequence of layers
             //Option 1: rank layers by density, i.e. covered area
-            layers.sort(new Comparator<LayerState>() {
+            selectedLayers.sort(new Comparator<LayerState>() {
                 @Override
                 public int compare(LayerState o1, LayerState o2) {
                     if(o1.getTotalUsedArea() > o2.getTotalUsedArea())
@@ -74,9 +77,9 @@ public class PalletBuilder {
                 }
             });
 
-            writeLayers(layers);
+            writeLayers(selectedLayers);
 
-            for(int i = 0, h = 0, totalWeight = 0; i < layers.size(); i++){
+            /*for(int i = 0, h = 0, totalWeight = 0; i < layers.size(); i++){
                 LayerState layer = layers.get(i);
                 if(h + layer.getLayerHeight() < Integer.parseInt(PackingConfigurationsSingleton.getProperty("height"))
                     && totalWeight + layer.getLayerHeight() < Integer.parseInt(PackingConfigurationsSingleton.getProperty("capacity"))
@@ -85,7 +88,7 @@ public class PalletBuilder {
                     h += layer.getLayerHeight();
                     totalWeight += layer.getTotalWeight();
                 }
-            }
+            }*/
 
             //TODO option 2, shuffle layers and then stack, choose the best one with maximum density in 3D.
 
@@ -138,7 +141,65 @@ public class PalletBuilder {
         return null;
     }
 
-    public void writeLayers(ArrayList<LayerState> layers) throws IOException {
+
+    private List<LayerState> solveSetCovering(Map<Integer, List<LayerState>> layersGroupByHeight) throws IloException {
+        List<LayerState> result = new ArrayList<>();
+        try {
+            IloCplex setCoveringSolver = new IloCplex();
+            //define objective
+            IloObjective layersUsed = setCoveringSolver.addMinimize();
+            //define constraints
+            Map<String, IloRange> covers = new HashMap<>();
+
+            for(String boxId: boxesToPack.keySet()){
+                covers.put(boxId, setCoveringSolver.addRange(1, Double.MAX_VALUE, boxId));
+            }
+            //define variables
+            Map<String, IloIntVar> vars = new HashMap<>();
+            //create model
+            for(Map.Entry<Integer, List<LayerState>> pair: layersGroupByHeight.entrySet()){
+                List<LayerState> layerList = pair.getValue();
+                Integer h = pair.getKey();
+                for(int i = 0; i < layerList.size(); i++){
+                    LayerState layer = layerList.get(i);
+                    //create a column
+                    IloColumn col = setCoveringSolver.column(layersUsed, 1.0);
+                    for(String boxId: layer.getBoxIds()){
+                        col = col.and(setCoveringSolver.column(covers.get(boxId), 1));
+                    }
+                    String varName = "H"+h+"Id"+i;
+                    vars.put(varName, setCoveringSolver.intVar(col, 0, 1, varName));
+                }
+            }
+            //solve
+            setCoveringSolver.setParam(	IloCplex.Param.TimeLimit, 120);
+            setCoveringSolver.solve();
+            System.out.println("Solution status: " + setCoveringSolver.getStatus());
+
+            for(Map.Entry<String, IloIntVar> pair: vars.entrySet()){
+                IloIntVar var = pair.getValue();
+                String varName = pair.getKey();
+                double value = setCoveringSolver.getValue(var);
+                if(value >= 0.9999){
+                    List<String> digits = Arrays.asList(varName.replaceAll("[^-?0-9]+", " ").trim().split(" "));
+                    Integer clusterHeight = Integer.parseInt(digits.get(0));
+                    Integer layerIndex = Integer.parseInt(digits.get(1));
+                    result.add(layersGroupByHeight.get(clusterHeight).get(layerIndex));
+                }
+            }
+            setCoveringSolver.end();
+        }
+        catch ( IloException exc ) {
+            System.err.println("Concert exception '" + exc + "' caught");
+        }
+        return result;
+    }
+
+    private List<Pallet> solveOneDimBinPacking(List<LayerState> selectedLayers){
+        return null;
+    }
+
+    public void writeLayers(List<LayerState> layers) throws IOException {
         int i = 0;
         for(LayerState layer: layers){
             FileWriter fileWriter = new FileWriter("test\\layer"+i+".csv");

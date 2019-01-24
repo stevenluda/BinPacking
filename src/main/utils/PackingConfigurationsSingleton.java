@@ -10,7 +10,7 @@ public class PackingConfigurationsSingleton {
     private static Properties prop;
     private PackingConfigurationsSingleton(){
         try {
-            FileInputStream is = new FileInputStream("src/main.Constraints.resources/packing.properties");
+            FileInputStream is = new FileInputStream("src/main/resources/packing.properties");
             prop = new Properties();
             prop.load(is);
             is.close();
