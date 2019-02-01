@@ -34,6 +34,15 @@ public class BoxCluster {
         return boxList;
     }
 
+    public Map<String, Box> getMaxSizeCluster(Map<String, Box> boxesMap){
+        Map<Integer, List<Box>> boxClusters = this.getClusters(boxesMap);
+        List<List<Box>> clusterLists = boxClusters.values().stream().collect(Collectors.toList());
+        Comparator<List<Box>> comparator = Comparator.comparing(List::size);
+        Collections.sort(clusterLists, comparator.reversed());
+        Map<String, Box> collect = clusterLists.get(0).stream().collect(Collectors.toMap(box -> box.getId(), box -> box));
+        return collect;
+    }
+
     public Map<Integer, List<Box>> getClusters(Map<String, Box> boxesMap){
         //First find the unique dimension values for each box
         //For each unique dimension value, calculate the area of the other two dimensions

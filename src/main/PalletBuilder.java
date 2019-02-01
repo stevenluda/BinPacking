@@ -29,6 +29,24 @@ public class PalletBuilder {
         //TODO: create pallet dimension object
 
     }
+
+    //This method builds pallet with a greedy heuristic.
+    //Every iteration, it finds a cluster of same height boxes, builds best possible layer within a given number of random shuffles
+    public List<Pallet> buildPalletsGreedy(){
+        BoxCluster boxCluster = new BoxCluster();
+        LayerBuilder layerBuilder = new LayerBuilder();
+        List<LayerState> layers = new ArrayList<>();
+        while(boxesToPack.size() > 0){
+            Map<String, Box> maxCluster = boxCluster.getMaxSizeCluster(boxesToPack);
+            LayerState layer = layerBuilder.generateBestLayer(maxCluster.values().stream().collect(Collectors.toList()), 40000);
+            layers.add(layer);
+            boxesToPack.keySet().removeAll(layer.getBoxIds());
+        }
+
+        return null;
+
+    }
+
     //TODO change the output to be a list of pallets
     public Pallet buildPallet(boolean buildByLayer) throws Exception {
         Pallet pallet = new Pallet("Pallet", Integer.parseInt(PackingConfigurationsSingleton.getProperty("width")),
@@ -152,7 +170,10 @@ public class PalletBuilder {
             Map<String, IloRange> covers = new HashMap<>();
 
             for(String boxId: boxesToPack.keySet()){
-                covers.put(boxId, setCoveringSolver.addRange(1, Double.MAX_VALUE, boxId));
+                covers.put(boxId, setCoveringSolver.addRange(1, 1, boxId));
+            }
+            for(String boxId: boxesToPack.keySet()){
+                setCoveringSolver.intVar(setCoveringSolver.column(layersUsed, 1.0).and(setCoveringSolver.column(covers.get(boxId), 1)), 0, 1, boxId);
             }
             //define variables
             Map<String, IloIntVar> vars = new HashMap<>();
@@ -172,7 +193,7 @@ public class PalletBuilder {
                 }
             }
             //solve
-            setCoveringSolver.setParam(	IloCplex.Param.TimeLimit, 120);
+            setCoveringSolver.setParam(	IloCplex.Param.TimeLimit, 3600);
             setCoveringSolver.solve();
             System.out.println("Solution status: " + setCoveringSolver.getStatus());
 
@@ -191,6 +212,20 @@ public class PalletBuilder {
         }
         catch ( IloException exc ) {
             System.err.println("Concert exception '" + exc + "' caught");
+        }
+        Map<String, Integer> boxIds = new HashMap<>();
+        for(LayerState layer:result){
+            for(String boxId: layer.getBoxIds()){
+                    Integer count = boxIds.containsKey(boxId)?boxIds.get(boxId):0;
+                    boxIds.put(boxId, count+1);
+            }
+        }
+        Map<String, Integer> overCovered= boxIds.entrySet().stream().filter(entry -> entry.getValue() > 1).collect(Collectors.toMap(entry->entry.getKey(), entry->entry.getValue()));
+        List<String> unCovered = new ArrayList<>();
+        for(String boxId: boxesToPack.keySet()){
+            if(!boxIds.containsKey(boxId)){
+                unCovered.add(boxId);
+            }
         }
         return result;
     }

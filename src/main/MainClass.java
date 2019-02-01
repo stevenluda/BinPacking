@@ -5,6 +5,7 @@ import main.PackingObjects.Pallet;
 import main.utils.InputReader;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class MainClass {
@@ -21,6 +22,7 @@ public class MainClass {
         /***END**/
         PalletBuilder builder = new PalletBuilder(unpackedBoxes);
         try {
+            List<Pallet> palletsTest = builder.buildPalletsGreedy();
             Pallet pallet = builder.buildPallet(true);
             if(pallet != null){
                 pallets.add(pallet);

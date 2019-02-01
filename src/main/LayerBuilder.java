@@ -29,6 +29,7 @@ public class LayerBuilder {
         else
             return bestState;
     }
+
     public Set<LayerState> constructLayers(List<Box> sameHeightBoxes, int nbShuffles, boolean needBest){
         Map<String, Box> sameHeightBoxesMap = new HashMap<>();
         ArrayList<String> sameHeightBoxesIds = new ArrayList<>();
@@ -68,6 +69,10 @@ public class LayerBuilder {
             }
         }
         return layers;
+    }
+
+    public LayerState generateBestLayer(List<Box> sameHeightBoxes, int nbShuffles){
+        return this.generateLayers(sameHeightBoxes, nbShuffles).get(0);
     }
 
     public List<LayerState> generateLayers(List<Box> sameHeightBoxes, int nbShuffles){
