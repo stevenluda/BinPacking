@@ -42,11 +42,46 @@ public class PalletBuilder {
             layers.add(layer);
             boxesToPack.keySet().removeAll(layer.getBoxIds());
         }
+        layers = layers.stream().sorted(Comparator.comparing(LayerState::getTotalUsedArea).reversed()).collect(Collectors.toList());
+        //Start from layers with few boxes, see if they can be inserted into other layers
+        //assuming the layers are sorted in decreasing order of coverage
+        //find the layer where the free space area in all preceding layers is greater than all boxes in following layers
+        //assuming that all the boxes in following layers oriented with their largest facets as the bottoms
 
+        //do a one pass through the layer and recording both the accumulative free spaces and the accumulative total bottom area of boxes
+        int separatingLayerIndex = findSeparatingLayerIndex(layers);
+        
         return null;
 
     }
 
+    private int findSeparatingLayerIndex(List<LayerState> layers){
+        int listLen = layers.size();
+        int[] cumuFreeArea = new int [layers.size()+1];
+        int[] cumuBottomArea = new int [layers.size()+1];
+        cumuFreeArea[0] = 0;
+        cumuBottomArea[listLen] = 0;
+
+        for(int i = 0; i < listLen; i++){
+            cumuFreeArea[i+1] = cumuFreeArea[i];
+            LayerState layer = layers.get(i);
+            cumuFreeArea[i+1] += layer.getTotalFreeArea();
+
+            cumuBottomArea[listLen-i-1] = cumuBottomArea[listLen-i];
+            layer = layers.get(listLen-i-1);
+            for(Box box: layer.getPackedBoxes()){
+                cumuBottomArea[listLen-i-1] += box.getLargestFacetArea();
+            }
+        }
+        //Assuming cumuFreeArea > cumuBottomArea only happens once //TODO: prove the correctness of the assumption
+        int leftMostCrossingIndex = listLen;
+        for(int i = listLen - 1 ; i > 1; i--){
+           if(cumuBottomArea[i] < cumuFreeArea[i-1]){
+               leftMostCrossingIndex = i-1;
+           }
+        }
+        return leftMostCrossingIndex;
+    }
     //TODO change the output to be a list of pallets
     public Pallet buildPallet(boolean buildByLayer) throws Exception {
         Pallet pallet = new Pallet("Pallet", Integer.parseInt(PackingConfigurationsSingleton.getProperty("width")),

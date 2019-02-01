@@ -16,6 +16,7 @@ public class LayerState extends State {
     int layerHeight;
     int totalWeight;
     int totalUsedArea;
+    int totalFreeArea;
     Set<String> boxIds = new HashSet<>();
     ArrayList<PositionedRectangle> freespaces = new ArrayList<PositionedRectangle>();
 
@@ -26,11 +27,16 @@ public class LayerState extends State {
         layerHeight = 0;
         totalWeight = 0;
         totalUsedArea = 0;
+        totalFreeArea = freespaces.get(0).getArea();
         placements = new ArrayList<>();
     }
 
     public int getTotalUsedArea() {
         return totalUsedArea;
+    }
+
+    public int getTotalFreeArea() {
+        return totalFreeArea;
     }
 
     public ArrayList<Box> getPackedBoxes() {
@@ -67,6 +73,7 @@ public class LayerState extends State {
         numberOfBoxes++;
         totalWeight += box.getWeight();
         totalUsedArea += cuboid.getBottomArea();
+        totalFreeArea -= cuboid.getBottomArea();
         updateFreeSpaces(new PositionedRectangle(cuboid.getWidth(), cuboid.getDepth(), position));
     }
 

@@ -26,7 +26,18 @@ public class Cuboid{
         return width*depth*height;
     }
     public int getBottomArea(){ return width*depth; }
-
+    public int getFrontArea() {return width*height;}
+    public int getLeftArea() {return depth*height;}
+    public int getLargestFacetArea(){
+        int largestArea = 0;
+        if(getBottomArea() > largestArea)
+            largestArea = getBottomArea();
+        if(getFrontArea() > largestArea)
+            largestArea = getFrontArea();
+        if(getLeftArea() > largestArea)
+            largestArea = getLeftArea();
+        return largestArea;
+    }
     public Rectangle getBottomRectangle(){
         return new Rectangle(width, depth);
     }
