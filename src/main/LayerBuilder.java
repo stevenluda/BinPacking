@@ -45,7 +45,7 @@ public class LayerBuilder {
             Collections.shuffle(shuffledSequence);
             LayerState state = new LayerState();
             Box box = sameHeightBoxesMap.get(shuffledSequence.get(0));
-            state.setLayerHeight(box.getHeight());
+            //state.setLayerHeight(box.getHeight());
             PositionedRectangle p = findPlacementPosition(box.getBottomRectangle(), state);
             while(!shuffledSequence.isEmpty()&& p!=null){
                 Cuboid new_dims = randomlyChooseHorizontalOrientation(p, box.getDims());
@@ -69,6 +69,29 @@ public class LayerBuilder {
             }
         }
         return layers;
+    }
+
+    public LayerState enhanceLayer(Box box, LayerState layer, String insertionType){
+        //try easy insertions
+        //look for feasible free space to insert
+        if(insertionType.equals("SIMPLE")){
+            PositionedRectangle p = findPlacementPosition(box.getBottomRectangle(), layer);
+            if(p!=null){
+                Cuboid new_dims = randomlyChooseHorizontalOrientation(p, box.getDims());
+                layer.updateState(box, p.getPosition(), new_dims);
+                return layer;
+            }
+        }
+
+        if(insertionType.equals("SHUFFLE")){
+            List<Box> candidateBoxes = layer.getPackedBoxes();
+            candidateBoxes.add(box);
+            LayerState newLayer = generateBestLayer(candidateBoxes, 20000);
+            if(newLayer.getBoxIds().size() == candidateBoxes.size()){
+                return newLayer;
+            }
+        }
+        return null;
     }
 
     public LayerState generateBestLayer(List<Box> sameHeightBoxes, int nbShuffles){

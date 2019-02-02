@@ -4,6 +4,7 @@ import main.PackingObjects.Box;
 import main.PackingObjects.Cuboid;
 import main.PackingObjects.FreeSpace3D;
 import main.PackingObjects.Pallet;
+import main.PlacementObjects.PositionedRectangle;
 import main.State.LayerState;
 import main.utils.FreeSpaceComparator;
 import main.utils.PackingConfigurationsSingleton;
@@ -32,7 +33,7 @@ public class PalletBuilder {
 
     //This method builds pallet with a greedy heuristic.
     //Every iteration, it finds a cluster of same height boxes, builds best possible layer within a given number of random shuffles
-    public List<Pallet> buildPalletsGreedy(){
+    public List<Pallet> buildPalletsGreedy() throws IOException {
         BoxCluster boxCluster = new BoxCluster();
         LayerBuilder layerBuilder = new LayerBuilder();
         List<LayerState> layers = new ArrayList<>();
@@ -50,9 +51,69 @@ public class PalletBuilder {
 
         //do a one pass through the layer and recording both the accumulative free spaces and the accumulative total bottom area of boxes
         int separatingLayerIndex = findSeparatingLayerIndex(layers);
-        
+        //iteratively try to insert boxes in layers after separatingLayerIndex into previous layers
+        tryIterativeBoxInsertion(layers, separatingLayerIndex, "SIMPLE");
+
+        tryIterativeBoxInsertion(layers, separatingLayerIndex, "SHUFFLE");
+
+        int nbPacks = layers.stream().mapToInt(LayerState::getNumberOfBoxes).sum();
+        writeLayers(layers);
         return null;
 
+    }
+
+    //This method try to insert boxes from sparsely packed layers into densely packed layers
+    private void tryIterativeBoxInsertion(List<LayerState> layers, int separatingLayerIndex, String insertionType){
+        for(int i = layers.size() - 1; i > separatingLayerIndex; i--){
+            LayerState layer = layers.get(i);
+            List<String> boxesInserted = new ArrayList<>();
+            for(Box box: layer.getPackedBoxes()){
+                for(int j = 0; j <= separatingLayerIndex; j++){
+                    LayerState accommodatingLayer = layers.get(j);
+                    //try insert the box into this layer with different bottom facet subject to height lower than layer height
+                    LayerState newLayer = null;
+                    int width, depth, height;
+                    width = box.getWidth();
+                    depth = box.getDepth();
+                    height = box.getHeight();
+                    if(newLayer == null && height <= accommodatingLayer.getLayerHeight()){
+                        newLayer = insertBox(box, accommodatingLayer, insertionType);
+                    }
+                    if(newLayer == null  && depth <= accommodatingLayer.getLayerHeight()){
+                        box.setDims(new Cuboid(width, height, depth));
+                        newLayer = insertBox(box, accommodatingLayer, insertionType);
+                    }
+                    if(newLayer == null  && width <= accommodatingLayer.getLayerHeight()){
+                        box.setDims(new Cuboid(height, depth, width));
+                        newLayer = insertBox(box, accommodatingLayer, insertionType);
+                    }
+
+                    if(newLayer != null){
+                        boxesInserted.add(box.getId());
+                        layers.set(j, newLayer);
+                        break;
+                    }
+                }
+            }
+            layer.removeBoxes(boxesInserted);
+            int nbPacks = layers.stream().mapToInt(LayerState::getNumberOfBoxes).sum();
+            if(nbPacks < 1000)
+                System.out.println("Check Nb boxes");
+        }
+        //remove empty layers
+        List<LayerState> layersToRemove = new ArrayList<>();
+        for(int i = layers.size() - 1; i > separatingLayerIndex; i--){
+            if(layers.get(i).getNumberOfBoxes() == 0)
+                layersToRemove.add(layers.get(i));
+        }
+        layers.removeAll(layersToRemove);
+    }
+
+    public LayerState insertBox(Box box, LayerState layer, String insertionType){
+        if(layer.getTotalFreeArea() < box.getBottomArea()){
+            return null;
+        }
+        return new LayerBuilder().enhanceLayer(box, layer, insertionType);
     }
 
     private int findSeparatingLayerIndex(List<LayerState> layers){

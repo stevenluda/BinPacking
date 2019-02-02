@@ -9,9 +9,10 @@ import main.PlacementObjects.Vector3D;
 import main.utils.PackingConfigurationsSingleton;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class LayerState extends State {
-    ArrayList<Placement> placements;
+    HashMap<String, Placement> placements;
     int numberOfBoxes;
     int layerHeight;
     int totalWeight;
@@ -28,7 +29,7 @@ public class LayerState extends State {
         totalWeight = 0;
         totalUsedArea = 0;
         totalFreeArea = freespaces.get(0).getArea();
-        placements = new ArrayList<>();
+        placements = new HashMap<>();
     }
 
     public int getTotalUsedArea() {
@@ -41,7 +42,7 @@ public class LayerState extends State {
 
     public ArrayList<Box> getPackedBoxes() {
         ArrayList<Box> boxes = new ArrayList<>();
-        for(Placement p: placements){
+        for(Placement p: placements.values()){
             boxes.add(p.getBox());
         }
         return boxes;
@@ -68,13 +69,16 @@ public class LayerState extends State {
     }
 
     public void updateState(Box box, Vector3D position, Cuboid cuboid){
-        placements.add(new Placement(box, position, cuboid));
+        placements.put(box.getId(), new Placement(box, position, cuboid));
         boxIds.add(box.getId());
         numberOfBoxes++;
         totalWeight += box.getWeight();
         totalUsedArea += cuboid.getBottomArea();
         totalFreeArea -= cuboid.getBottomArea();
         updateFreeSpaces(new PositionedRectangle(cuboid.getWidth(), cuboid.getDepth(), position));
+        if(box.getHeight() > getLayerHeight()){
+            setLayerHeight(box.getHeight());
+        }
     }
 
     public void updateFreeSpaces(PositionedRectangle rectangle){
@@ -134,13 +138,13 @@ public class LayerState extends State {
     }
 
 
-    public ArrayList<Placement> getPlacements() {
+    public HashMap<String, Placement> getPlacements() {
         return placements;
     }
 
     public String toString2D(){
         String result = "";
-        for(Placement p: placements){
+        for(Placement p: placements.values()){
             result += p.getBox().getId()+","+p.getOrientation().getWidth()+","+p.getOrientation().getDepth()+","+p.getOrientation().getHeight()+","+p.getPosition().getX()+","+p.getPosition().getY()+"\r\n";
         }
         return result;
@@ -172,5 +176,12 @@ public class LayerState extends State {
         return Objects.hash(this.getLayerHeight(), this.getNumberOfBoxes(), this.getTotalUsedArea(),
                                        this.getTotalWeight(), this.freespaces.size(),
                                         Arrays.hashCode(this.getBoxIds().toArray()));
+    }
+
+    public void removeBoxes(List<String> boxIds) {
+        this.boxIds.removeAll(boxIds);
+        placements.keySet().removeAll(boxIds);
+        numberOfBoxes -= boxIds.size();
+        //TODO: Since the layer is corrupted, don't use other information except boxIds and placements, may need an update to the free space, totalAreaUsed, totalWeight
     }
 }
