@@ -4,6 +4,7 @@ import main.PackingObjects.Box;
 import main.PackingObjects.Cuboid;
 import main.PackingObjects.FreeSpace3D;
 import main.PackingObjects.Pallet;
+import main.PlacementObjects.Placement;
 import main.PlacementObjects.PositionedRectangle;
 import main.State.LayerState;
 import main.utils.FreeSpaceComparator;
@@ -58,6 +59,12 @@ public class PalletBuilder {
 
         int nbPacks = layers.stream().mapToInt(LayerState::getNumberOfBoxes).sum();
         writeLayers(layers);
+        List<List<LayerState>> bins = solveOneDimBinPacking(layers);
+        for(List<LayerState> layersInABin: bins){
+            layersInABin.stream().sorted(Comparator.comparing(LayerState::getTotalUsedArea).reversed().thenComparing(LayerState::getNbDistinctHeights)).collect(Collectors.toList());
+            stackLayers(layersInABin);
+        }
+        writeBins(bins);
         return null;
 
     }
@@ -326,8 +333,95 @@ public class PalletBuilder {
         return result;
     }
 
-    private List<Pallet> solveOneDimBinPacking(List<LayerState> selectedLayers){
-        return null;
+    private List<List<LayerState>> solveOneDimBinPacking(List<LayerState> selectedLayers){
+        List<List<LayerState>> bins = new ArrayList<>();
+        try {
+            IloCplex setCoveringSolver = new IloCplex();
+            //define objective
+            IloObjective binsUsed = setCoveringSolver.addMinimize();
+            //define constraints
+            Map<String, IloRange> covers = new HashMap<>();
+            Map<String, IloRange> boxHeightConstraints = new HashMap<>();
+            for(Integer i = 0; i < selectedLayers.size(); i++){
+                covers.put("layer_" +i.toString(), setCoveringSolver.addRange(1, 1, "layer_" +i.toString()));
+            }
+            for(Integer j = 0; j < selectedLayers.size(); j++){
+                boxHeightConstraints.put("box_"+j.toString(), setCoveringSolver.addRange(0, 2055, "box_"+j.toString()));
+            }
+
+            //define variables
+            Map<Integer, IloIntVar> varsBoxUsed = new HashMap<>();
+            Map<Integer, Map<Integer, IloIntVar>> varsLayerInBox = new HashMap<>();
+            for(Integer i = 0; i < selectedLayers.size(); i++){
+                varsLayerInBox.put(i, new HashMap<>());
+            }
+            for(Integer i = 0; i < selectedLayers.size(); i++){
+                LayerState layer = selectedLayers.get(i);
+                for(Integer j = 0; j < selectedLayers.size(); j++){
+                    //add binary variables x_ij representing layer i in box j
+                    varsLayerInBox.get(j).put(i ,setCoveringSolver.intVar(
+                            setCoveringSolver.column(boxHeightConstraints.get("box_"+j.toString()), -layer.getLayerHeight())
+                            .and(setCoveringSolver.column(covers.get("layer_"+i.toString()), 1)),
+                            0,1, "layer_"+i.toString()+"_in_box_"+j.toString()
+                    ));
+                }
+                varsBoxUsed.put(i,
+                        setCoveringSolver.intVar(setCoveringSolver.column(binsUsed, 1.0)
+                        .and(setCoveringSolver.column(boxHeightConstraints.get("box_"+i.toString()), 2055)), 0, 1, "box_"+i.toString())
+                );
+            }
+            setCoveringSolver.exportModel("test\\oneBin.lp");
+            //solve
+            setCoveringSolver.setParam(	IloCplex.Param.TimeLimit, 3600);
+            setCoveringSolver.solve();
+            System.out.println("Solution status: " + setCoveringSolver.getStatus());
+
+            for(Map.Entry<Integer, IloIntVar> pair: varsBoxUsed.entrySet()){
+                IloIntVar var = pair.getValue();
+                Integer j = pair.getKey();
+                double value = setCoveringSolver.getValue(var);
+                if(value >= 0.9999){
+                    List<LayerState> layers = new ArrayList<>();
+                    for(Map.Entry<Integer, IloIntVar> kv: varsLayerInBox.get(j).entrySet()){
+                        IloIntVar varLayerInBox = kv.getValue();
+                        Integer i = kv.getKey();
+                        double value2 = setCoveringSolver.getValue(varLayerInBox);
+                        if(value2 >= 0.9999){
+                            // layer i in box j
+                            layers.add(selectedLayers.get(i));
+                        }
+                    }
+                    bins.add(layers);
+                }
+            }
+            setCoveringSolver.end();
+        }
+        catch ( IloException exc ) {
+            System.err.println("Concert exception '" + exc + "' caught");
+        }
+        return bins;
+    }
+
+    public void stackLayers(List<LayerState> layers){
+        int h_position = 0;
+        for(LayerState layer: layers){
+            for(Placement p: layer.getPlacements().values()){
+                p.getPosition().setZ(h_position);
+            }
+            h_position += layer.getLayerHeight();
+        }
+    }
+
+    public void writeBins(List<List<LayerState>> bins) throws IOException{
+        int i = 0;
+        for(List<LayerState> layers: bins){
+            FileWriter fileWriter = new FileWriter("test\\bin"+i+".csv");
+            PrintWriter printWriter = new PrintWriter(fileWriter);
+            for(LayerState layer: layers)
+                printWriter.print(layer.toString3D());
+            printWriter.close();
+            i++;
+        }
     }
 
     public void writeLayers(List<LayerState> layers) throws IOException {

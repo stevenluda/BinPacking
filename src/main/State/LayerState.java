@@ -48,6 +48,18 @@ public class LayerState extends State {
         return boxes;
     }
 
+    public HashSet<Integer> getDistinctHeights(){
+        HashSet<Integer> distinctHeights = new HashSet<>();
+        for(Placement p: placements.values()){
+            distinctHeights.add(p.getOrientation().getHeight());
+        }
+        return distinctHeights;
+    }
+
+    public Integer getNbDistinctHeights(){
+        return getDistinctHeights().size();
+    }
+
     public int getNumberOfBoxes() {
         return numberOfBoxes;
     }
@@ -146,6 +158,14 @@ public class LayerState extends State {
         String result = "";
         for(Placement p: placements.values()){
             result += p.getBox().getId()+","+p.getOrientation().getWidth()+","+p.getOrientation().getDepth()+","+p.getOrientation().getHeight()+","+p.getPosition().getX()+","+p.getPosition().getY()+"\r\n";
+        }
+        return result;
+    }
+
+    public String toString3D(){
+        String result = "";
+        for(Placement p: placements.values()){
+            result += p.getBox().getId()+","+p.getOrientation().getWidth()+","+p.getOrientation().getDepth()+","+p.getOrientation().getHeight()+","+p.getPosition().getX()+","+p.getPosition().getY()+","+p.getPosition().getZ()+"\r\n";
         }
         return result;
     }

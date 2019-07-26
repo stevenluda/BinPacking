@@ -23,10 +23,10 @@ public class MainClass {
         PalletBuilder builder = new PalletBuilder(unpackedBoxes);
         try {
             List<Pallet> palletsTest = builder.buildPalletsGreedy();
-            Pallet pallet = builder.buildPallet(true);
-            if(pallet != null){
+            //Pallet pallet = builder.buildPallet(true);
+            /*if(pallet != null){
                 pallets.add(pallet);
-            }
+            }*/
         } catch (Exception e) {
             e.printStackTrace();
         }
